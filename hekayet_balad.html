@@ -1,0 +1,2958 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>حكاية بلد | Hekayet Balad — قرية ومزرعة مصرية ثلاثية الأبعاد</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17" async></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" async onload="if(window.tryUpgradeThreeJS) window.tryUpgradeThreeJS()"></script>
+  <style>
+    :root {
+      --bg-sand: #fdf6e9;
+      --earth-brown: #5c3a21;
+      --nile-blue: #1e6b7b;
+      --delta-green: #2d7a47;
+      --gold-wheat: #d97706;
+    }
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Cairo', 'Noto Sans Arabic', system-ui, -apple-system, sans-serif;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #1b4332;
+      color: #2b1d0e;
+      direction: rtl;
+    }
+    #game-viewport {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #game-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+    }
+    #game-canvas:active {
+      cursor: grabbing;
+    }
+    .cozy-panel {
+      background: linear-gradient(180deg, rgba(255, 250, 240, 0.96) 0%, rgba(247, 236, 213, 0.96) 100%);
+      border: 2px solid #b48347;
+      box-shadow: 0 8px 24px rgba(43, 29, 14, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(8px);
+    }
+    .cozy-card {
+      background: #fffdf8;
+      border: 1.5px solid #dec397;
+      border-radius: 14px;
+      transition: all 0.18s ease;
+    }
+    .cozy-card:hover {
+      border-color: #b47b32;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 14px rgba(92, 58, 33, 0.12);
+    }
+    .btn-primary {
+      background: linear-gradient(180deg, #2e8540 0%, #1e632d 100%);
+      color: #ffffff;
+      border: 1px solid #164921;
+      box-shadow: 0 3px 0 #123c1b;
+      transition: all 0.12s ease;
+    }
+    .btn-primary:hover:not(:disabled) {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #123c1b;
+    }
+    .btn-primary:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+      filter: grayscale(0.4);
+    }
+    .btn-gold {
+      background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%);
+      color: #fff;
+      border: 1px solid #92400e;
+      box-shadow: 0 3px 0 #78350f;
+      transition: all 0.12s ease;
+    }
+    .btn-gold:hover:not(:disabled) {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+    }
+    .btn-gold:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #78350f;
+    }
+    .btn-gold:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+    }
+    .btn-earth {
+      background: linear-gradient(180deg, #8c5a32 0%, #694121 100%);
+      color: #fff8eb;
+      border: 1px solid #4a2c14;
+      box-shadow: 0 3px 0 #3a210e;
+      transition: all 0.12s ease;
+    }
+    .btn-earth:hover:not(:disabled) {
+      filter: brightness(1.1);
+    }
+    .tool-btn-active {
+      background: linear-gradient(180deg, #fef3c7 0%, #fde68a 100%) !important;
+      border-color: #d97706 !important;
+      box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.35), 0 4px 10px rgba(0,0,0,0.18) !important;
+      transform: translateY(-3px);
+    }
+    .nav-tab-active {
+      background: linear-gradient(180deg, #d97706 0%, #b45309 100%) !important;
+      color: #ffffff !important;
+      border-color: #78350f !important;
+      transform: translateY(-3px);
+    }
+    ::-webkit-scrollbar {
+      width: 7px;
+      height: 7px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(222, 195, 151, 0.25);
+      border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #b48347;
+      border-radius: 8px;
+    }
+    @keyframes floatUpFade {
+      0% { opacity: 1; transform: translateY(0) scale(0.95); }
+      100% { opacity: 0; transform: translateY(-48px) scale(1.08); }
+    }
+    .floating-reward {
+      position: absolute;
+      pointer-events: none;
+      animation: floatUpFade 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      z-index: 45;
+      font-weight: 800;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.45);
+    }
+    #modal-backdrop { background-color: rgba(20, 14, 8, 0.62); backdrop-filter: blur(4px); }
+    #modal-backdrop > div > div:first-child {
+      background: linear-gradient(90deg, #5c3a21 0%, #78350f 50%, #5c3a21 100%);
+      color: #fffbeb;
+      border-bottom: 2px solid #b48347;
+    }
+    #toast-container > div {
+      background: linear-gradient(180deg, #1e3a2f 0%, #132a21 100%);
+      color: #fef3c7;
+      border: 1.5px solid #f59e0b;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+    }
+  </style>
+</head>
+<body class="relative w-full h-full select-none overflow-hidden">
+
+  <!-- 3D ISOMETRIC VIEWPORT -->
+  <div id="game-viewport">
+    <canvas id="game-canvas"></canvas>
+  </div>
+
+  <!-- FLOATING TEXT OVERLAY CONTAINER -->
+  <div id="floating-fx-layer" class="pointer-events-none fixed inset-0 z-30 overflow-hidden"></div>
+
+  <!-- TOAST NOTIFICATION BANNER -->
+  <div id="toast-container" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none w-11/12 max-w-md"></div>
+
+  <!-- TOP HUD BAR -->
+  <header class="fixed top-2 inset-x-2 z-30 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+    <div class="flex items-center gap-2 pointer-events-auto cozy-panel px-3 py-1.5 rounded-2xl">
+      <div class="flex items-center gap-2">
+        <div class="w-10 h-10 rounded-xl bg-amber-600 text-white flex flex-col items-center justify-center font-black shadow-inner border border-amber-800">
+          <span class="text-[10px] leading-none opacity-85">مستوى</span>
+          <span id="hud-level" class="text-lg leading-tight">1</span>
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="font-extrabold text-sm sm:text-base text-amber-950 leading-tight">حكاية بلد</h1>
+            <span id="season-badge" class="text-[11px] bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.5 rounded-full font-bold cursor-pointer" title="انقر لتغيير الموسم الزراعي">🌾 الموسم الشتوي</span>
+          </div>
+          <div class="w-28 sm:w-36 bg-amber-950/15 h-3 rounded-full overflow-hidden mt-1 relative border border-amber-900/20">
+            <div id="hud-xp-bar" class="bg-gradient-to-l from-emerald-500 to-teal-600 h-full transition-all duration-300" style="width: 0%"></div>
+            <span id="hud-xp-text" class="absolute inset-0 flex items-center justify-center text-[9px] font-extrabold text-amber-950">0 / 50 خبرة</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="h-8 w-px bg-amber-800/20 mx-1 hidden sm:block"></div>
+
+      <div class="flex items-center gap-2 sm:gap-3">
+        <div class="flex items-center gap-1.5 bg-amber-100/90 border border-amber-300 px-2.5 py-1 rounded-xl">
+          <span class="text-base">🪙</span>
+          <div>
+            <div class="text-[10px] text-amber-800 font-bold leading-none">الرصيد</div>
+            <div class="text-xs sm:text-sm font-black text-amber-950"><span id="hud-coins">180</span> ج.م</div>
+          </div>
+        </div>
+
+        <button id="btn-hud-storage" type="button" class="flex items-center gap-1.5 bg-orange-50/90 hover:bg-orange-100 border border-orange-300 px-2.5 py-1 rounded-xl transition" title="فتح المخزن والصومعة">
+          <span class="text-base">🏺</span>
+          <div class="text-right">
+            <div class="text-[10px] text-orange-800 font-bold leading-none">المخزن</div>
+            <div class="text-xs sm:text-sm font-black text-orange-950"><span id="hud-storage-used">0</span>/<span id="hud-storage-max">50</span></div>
+          </div>
+        </button>
+
+        <div class="hidden md:flex items-center gap-1.5 bg-emerald-50/90 border border-emerald-300 px-2.5 py-1 rounded-xl">
+          <span class="text-base">🌱</span>
+          <div>
+            <div class="text-[10px] text-emerald-800 font-bold leading-none">الأراضي</div>
+            <div class="text-xs sm:text-sm font-black text-emerald-950"><span id="hud-plots-unlocked">12</span>/20</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-1.5 pointer-events-auto cozy-panel px-2.5 py-1.5 rounded-2xl">
+      <button id="btn-speed-toggle" type="button" class="px-2.5 py-1 rounded-xl text-xs font-extrabold bg-amber-500/20 hover:bg-amber-500/30 border border-amber-600/40 text-amber-950 flex items-center gap-1 transition" title="تغيير سرعة النمو لاختبار أسرع">
+        <span>⚡</span>
+        <span id="speed-label">سرعة ×1</span>
+      </button>
+      <button id="btn-instant-grow" type="button" class="px-2.5 py-1 rounded-xl text-xs font-extrabold bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-700/30 text-emerald-900 flex items-center gap-1 transition" title="إنضاج جميع المزروعات والمنتجات فوراً">
+        <span>✨</span>
+        <span class="hidden sm:inline">إنضاج فوري</span>
+      </button>
+      <button id="btn-time-toggle" type="button" class="px-2 py-1 rounded-xl text-xs font-bold bg-sky-500/15 hover:bg-sky-500/25 border border-sky-600/30 text-sky-950 transition" title="تبديل إضاءة النهار / العصاري / الليل">
+        ☀️ <span id="time-label" class="hidden md:inline">شمس الضحى</span>
+      </button>
+      <button id="btn-audio-toggle" type="button" class="px-2 py-1 rounded-xl text-xs font-bold bg-amber-900/10 hover:bg-amber-900/20 border border-amber-900/20 text-amber-950 transition" title="تشغيل/كتم الصوت">
+        🔊
+      </button>
+      <button id="btn-mayor-modal" type="button" class="px-2.5 py-1 rounded-xl text-xs font-extrabold btn-gold flex items-center gap-1" title="ديوان العمدة والأوسمة">
+        <span>👑</span>
+        <span class="hidden sm:inline">ديوان العمدة</span>
+      </button>
+      <button id="btn-deploy-modal" type="button" class="px-2.5 py-1 rounded-xl text-xs font-extrabold btn-primary flex items-center gap-1" title="تحميل ملفات اللعبة وروابط النشر">
+        <span>📥</span>
+        <span>ملفات اللعبة والنشر</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- RIGHT SIDEBAR: CAMERA & VILLAGE TOUR CONTROLS + ACTIVE QUEST TRACKER -->
+  <aside class="fixed top-20 right-2 z-20 flex flex-col gap-2 w-48 sm:w-56 pointer-events-none">
+    <div class="cozy-panel p-2.5 rounded-2xl pointer-events-auto">
+      <div class="flex items-center justify-between mb-1.5">
+        <span class="text-xs font-extrabold text-amber-950 flex items-center gap-1">🎥 كاميرا القرية (3D)</span>
+        <span id="camera-angle-badge" class="text-[10px] bg-amber-900/10 px-1.5 py-0.5 rounded font-bold text-amber-900">زاوية 45°</span>
+      </div>
+      <div class="grid grid-cols-4 gap-1 mb-2">
+        <button id="btn-cam-zoom-in" type="button" class="bg-white hover:bg-amber-50 border border-amber-300 rounded-lg py-1 text-xs font-black text-amber-950 shadow-sm" title="تقريب الكاميرا">➕</button>
+        <button id="btn-cam-zoom-out" type="button" class="bg-white hover:bg-amber-50 border border-amber-300 rounded-lg py-1 text-xs font-black text-amber-950 shadow-sm" title="تبعيد الكاميرا">➖</button>
+        <button id="btn-cam-rotate" type="button" class="bg-white hover:bg-amber-50 border border-amber-300 rounded-lg py-1 text-xs font-black text-amber-950 shadow-sm" title="تدوير الكاميرا حول القرية">🔄</button>
+        <button id="btn-cam-reset" type="button" class="bg-white hover:bg-amber-50 border border-amber-300 rounded-lg py-1 text-xs font-black text-amber-950 shadow-sm" title="إعادة ضبط الكاميرا">🎯</button>
+      </div>
+      <div class="text-[10px] font-bold text-amber-800 mb-1">انتقال سريع لمعالم القرية:</div>
+      <div class="grid grid-cols-2 gap-1 text-[11px] font-bold">
+        <button type="button" data-cam-target="farm" class="cam-jump-btn bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-950 rounded-lg py-1 px-1.5 text-right truncate">🌾 الحقول (20)</button>
+        <button type="button" data-cam-target="canal" class="cam-jump-btn bg-sky-50 hover:bg-sky-100 border border-sky-300 text-sky-950 rounded-lg py-1 px-1.5 text-right truncate">🌊 الترعة والساقية</button>
+        <button type="button" data-cam-target="barn" class="cam-jump-btn bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-950 rounded-lg py-1 px-1.5 text-right truncate">🐄 الحظيرة (5)</button>
+        <button type="button" data-cam-target="workshops" class="cam-jump-btn bg-orange-50 hover:bg-orange-100 border border-orange-300 text-orange-950 rounded-lg py-1 px-1.5 text-right truncate">🥖 الفرن والورش</button>
+        <button type="button" data-cam-target="souq" class="cam-jump-btn bg-purple-50 hover:bg-purple-100 border border-purple-300 text-purple-950 rounded-lg py-1 px-1.5 text-right truncate">🏪 السوق الشعبي</button>
+        <button type="button" data-cam-target="overview" class="cam-jump-btn bg-stone-100 hover:bg-stone-200 border border-stone-300 text-stone-900 rounded-lg py-1 px-1.5 text-right truncate">🏡 نظرة شاملة</button>
+      </div>
+    </div>
+
+    <div class="cozy-panel p-2.5 rounded-2xl pointer-events-auto">
+      <div class="flex items-center justify-between mb-1">
+        <span class="text-xs font-extrabold text-amber-950 flex items-center gap-1">📜 المهمة الحالية</span>
+        <span id="tracker-quest-progress-count" class="text-[10px] font-bold text-emerald-800 bg-emerald-100 px-1.5 py-0.5 rounded-full">0 / 30</span>
+      </div>
+      <div id="active-quest-box" class="bg-white/90 border border-amber-200 rounded-xl p-2 text-xs"></div>
+    </div>
+  </aside>
+
+  <!-- LEFT SIDEBAR: SELECTED 3D OBJECT INSPECTOR -->
+  <aside id="inspector-card" class="fixed top-20 left-2 z-20 w-56 sm:w-64 cozy-panel p-3 rounded-2xl pointer-events-auto transition-all duration-200">
+    <div class="flex items-center justify-between border-b border-amber-900/15 pb-1.5 mb-2">
+      <div class="flex items-center gap-1.5">
+        <span id="inspector-icon" class="text-xl">🌾</span>
+        <div>
+          <h2 id="inspector-title" class="text-xs sm:text-sm font-extrabold text-amber-950 leading-tight">قطعة أرض زراعية #1</h2>
+          <p id="inspector-subtitle" class="text-[10px] text-amber-800 font-semibold">أرض خصبة بجانب الترعة</p>
+        </div>
+      </div>
+    </div>
+    <div id="inspector-body" class="text-xs space-y-2"></div>
+  </aside>
+
+  <!-- FARMING QUICK-TOOLS BAR -->
+  <div class="fixed bottom-20 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 cozy-panel px-3 py-1.5 rounded-2xl pointer-events-auto shadow-lg max-w-[96vw] overflow-x-auto">
+    <span class="text-[11px] font-extrabold text-amber-900 ml-1 whitespace-nowrap hidden sm:inline">أدوات المزرعة:</span>
+
+    <button type="button" data-tool="select" class="farm-tool-btn tool-btn-active flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white border border-amber-300 text-xs font-extrabold text-amber-950 whitespace-nowrap transition">
+      <span>🌱</span>
+      <span>زراعة / فحص</span>
+    </button>
+
+    <div class="flex items-center bg-emerald-50 border border-emerald-300 rounded-xl px-2 py-1 gap-1">
+      <span class="text-[10px] font-bold text-emerald-800">البذرة:</span>
+      <select id="quick-seed-select" aria-label="اختيار البذرة السريع" class="bg-transparent text-xs font-extrabold text-emerald-950 focus:outline-none cursor-pointer"></select>
+    </div>
+
+    <button type="button" data-tool="water" class="farm-tool-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white border border-amber-300 text-xs font-extrabold text-sky-950 whitespace-nowrap transition">
+      <span>💧</span>
+      <span>ريّ من الترعة</span>
+    </button>
+
+    <button type="button" data-tool="harvest" class="farm-tool-btn flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white border border-amber-300 text-xs font-extrabold text-amber-950 whitespace-nowrap transition">
+      <span>🌾</span>
+      <span>منجل الحصاد</span>
+    </button>
+
+    <div class="h-5 w-px bg-amber-900/20 mx-0.5"></div>
+
+    <button id="btn-plant-all" type="button" class="px-2.5 py-1.5 rounded-xl btn-primary text-xs font-extrabold whitespace-nowrap flex items-center gap-1" title="زراعة جميع الأراضي الفارغة بالبذرة المختارة">
+      <span>🚜</span>
+      <span>زراعة الفارغ</span>
+    </button>
+
+    <button id="btn-water-all" type="button" class="px-2.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-extrabold whitespace-nowrap flex items-center gap-1 shadow" title="ري جميع الأراضي المزروعة من الساقية">
+      <span>🌊</span>
+      <span>ريّ الكل</span>
+    </button>
+
+    <button id="btn-harvest-all" type="button" class="px-2.5 py-1.5 rounded-xl btn-gold text-xs font-extrabold whitespace-nowrap flex items-center gap-1" title="حصاد جميع المحاصيل الناضجة دفعة واحدة">
+      <span>✨</span>
+      <span>حصاد الجاهز</span>
+    </button>
+  </div>
+
+  <!-- BOTTOM MAIN NAVIGATION BAR (RTL) -->
+  <nav class="fixed bottom-2 left-1/2 -translate-x-1/2 z-30 flex items-center gap-1.5 sm:gap-2 cozy-panel px-3 py-2 rounded-2xl pointer-events-auto max-w-[98vw] overflow-x-auto">
+    <button type="button" data-modal="seeds" class="bottom-nav-btn flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-amber-50 border border-amber-300 text-xs sm:text-sm font-extrabold text-amber-950 whitespace-nowrap transition shadow-sm">
+      <span class="text-base">🌾</span>
+      <span>الأرض والبذور</span>
+    </button>
+
+    <button type="button" data-modal="barn" class="bottom-nav-btn flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-amber-50 border border-amber-300 text-xs sm:text-sm font-extrabold text-amber-950 whitespace-nowrap transition shadow-sm relative">
+      <span class="text-base">🐄</span>
+      <span>الحظيرة (5)</span>
+      <span id="badge-barn-ready" class="hidden absolute -top-1.5 -left-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">!</span>
+    </button>
+
+    <button type="button" data-modal="crafting" class="bottom-nav-btn flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-amber-50 border border-amber-300 text-xs sm:text-sm font-extrabold text-amber-950 whitespace-nowrap transition shadow-sm relative">
+      <span class="text-base">🥖</span>
+      <span>التصنيع (5)</span>
+      <span id="badge-craft-ready" class="hidden absolute -top-1.5 -left-1.5 bg-red-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">!</span>
+    </button>
+
+    <button type="button" data-modal="storage" class="bottom-nav-btn flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-amber-50 border border-amber-300 text-xs sm:text-sm font-extrabold text-amber-950 whitespace-nowrap transition shadow-sm">
+      <span class="text-base">🏺</span>
+      <span>المخزن والبيع</span>
+    </button>
+
+    <button type="button" data-modal="souq" class="bottom-nav-btn flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-amber-50 border border-amber-300 text-xs sm:text-sm font-extrabold text-amber-950 whitespace-nowrap transition shadow-sm relative">
+      <span class="text-base">🏪</span>
+      <span>السوق والطلبات</span>
+      <span id="badge-orders-ready" class="hidden absolute -top-1.5 -left-1.5 bg-emerald-600 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">✓</span>
+    </button>
+
+    <button type="button" data-modal="upgrades" class="bottom-nav-btn flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-amber-50 border border-amber-300 text-xs sm:text-sm font-extrabold text-amber-950 whitespace-nowrap transition shadow-sm">
+      <span class="text-base">🛠️</span>
+      <span>التطوير والتوسعة</span>
+    </button>
+
+    <button type="button" data-modal="quests" class="bottom-nav-btn flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white hover:bg-amber-50 border border-amber-300 text-xs sm:text-sm font-extrabold text-amber-950 whitespace-nowrap transition shadow-sm relative">
+      <span class="text-base">📜</span>
+      <span>المهمات (30)</span>
+      <span id="badge-quests-ready" class="hidden absolute -top-1.5 -left-1.5 bg-amber-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow">★</span>
+    </button>
+  </nav>
+
+  <!-- UNIVERSAL MODAL DRAWER FOR ALL GAME SYSTEMS -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-black/50 backdrop-blur-xs z-40 hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="cozy-panel w-full max-w-4xl max-h-[86vh] rounded-3xl flex flex-col overflow-hidden shadow-2xl border-2 border-amber-700">
+      <div class="flex items-center justify-between px-5 py-3.5 bg-gradient-to-l from-amber-900 via-amber-800 to-amber-900 text-amber-50">
+        <div class="flex items-center gap-2.5">
+          <span id="modal-header-icon" class="text-2xl">🌾</span>
+          <div>
+            <h2 id="modal-header-title" class="text-base sm:text-lg font-black leading-tight">قائمة البذور والأراضي</h2>
+            <p id="modal-header-subtitle" class="text-xs text-amber-200/90">اختر المحصول المناسب لتربة دلتا النيل</p>
+          </div>
+        </div>
+        <button id="btn-close-modal" type="button" class="w-9 h-9 rounded-xl bg-white/15 hover:bg-white/25 text-white font-black text-base flex items-center justify-center transition" aria-label="إغلاق النافذة">✕</button>
+      </div>
+      <div id="modal-content-body" class="p-4 sm:p-5 overflow-y-auto flex-1 space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    const NPC_PROFILES = {
+      ragab: {
+        id: 'ragab',
+        name: 'عم رجب',
+        role: 'شيخ المزارعين وحارس الساقية',
+        avatarSrc: "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="40" fill="#1e40af"/><circle cx="40" cy="31" r="15" fill="#d97706"/><path d="M25 26 Q40 14 55 26" fill="#fef3c7"/><path d="M16 74 Q40 50 64 74" fill="#60a5fa"/><path d="M31 35 Q40 41 49 35" stroke="#fff" stroke-width="3" fill="none"/></svg>`),
+        color: '#2b6cb0',
+        greeting: 'يا مرحب بيك يا ولدي في أرض الطيبة! طمي النيل مستني إيدك تزرعه خير وبركة.'
+      },
+      salma: {
+        id: 'salma',
+        name: 'سلمى',
+        role: 'مسؤولة الفرن البلدي ومعمل الألبان',
+        avatarSrc: "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="40" fill="#9d174d"/><circle cx="40" cy="31" r="15" fill="#f59e0b"/><path d="M22 25 Q40 10 58 25" fill="#f43f5e"/><path d="M16 74 Q40 50 64 74" fill="#fb7185"/></svg>`),
+        color: '#d97706',
+        greeting: 'ريحة العيش البلدي والفطير المشلتت بترد الروح! هات القمح واللبن وخلي الباقي عليا.'
+      },
+      shawky: {
+        id: 'shawky',
+        name: 'المعلم شوقي',
+        role: 'كبير تجار السوق الشعبي',
+        avatarSrc: "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="40" fill="#5b21b6"/><circle cx="40" cy="31" r="15" fill="#d97706"/><ellipse cx="40" cy="20" rx="18" ry="8" fill="#fffbeb"/><path d="M16 74 Q40 50 64 74" fill="#a78bfa"/></svg>`),
+        color: '#7c3aed',
+        greeting: 'السوق النهاردة عمران يا بطل! جهّز طلبات أهل البلد وهتاخد دهب وخبرة فوق البيعة.'
+      },
+      hassan: {
+        id: 'hassan',
+        name: 'المهندس حسن',
+        role: 'حرفي القرية ومسؤول التطوير والساقية',
+        avatarSrc: "data:image/svg+xml;utf8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="40" fill="#065f46"/><circle cx="40" cy="31" r="15" fill="#d97706"/><path d="M24 23 Q40 15 56 23" stroke="#fde68a" stroke-width="5" fill="none"/><path d="M16 74 Q40 50 64 74" fill="#34d399"/></svg>`),
+        color: '#059669',
+        greeting: 'عايز توسع الغيط أو تطور الساقية والصومعة وبرج الحمام؟ عدّي عليا في ورشة التطوير!'
+      }
+    };
+
+    const SEASONS = [
+      { id: 'shitwi', name: '🌾 الموسم الشتوي', bonusDesc: '+25% سعر بيع القمح والبرسيم والفول', bonusItems: ['wheat', 'clover', 'fava'], mult: 1.25 },
+      { id: 'seifi', name: '☀️ الموسم الصيفي', bonusDesc: '+25% سعر بيع الذرة وقصب السكر والقطن', bonusItems: ['corn', 'sugarcane', 'cotton'], mult: 1.25 },
+      { id: 'nili', name: '🌊 الموسم النيلي', bonusDesc: '+25% سعر بيع الطماطم والبلح والألبان', bonusItems: ['tomato', 'dates', 'buffalo_milk', 'kareish_cheese'], mult: 1.25 },
+      { id: 'moulid', name: '🏮 مولد القرية', bonusDesc: '+35% سعر بيع جميع المخبوزات والمنسوجات والعسل', bonusItems: ['baladi_bread', 'feteer_meshaltet', 'black_honey', 'egyptian_fabric'], mult: 1.35 }
+    ];
+
+    const GAME_DATA = {
+      crops: [
+        { id: 'clover', name: 'برسيم حجازي', icon: '☘️', seedCost: 5, sellPrice: 12, growTimeSec: 6, xp: 4, unlockLevel: 1, colorHex: 0x38a169, fruitColorHex: 0x9f7aea, desc: 'محصول سريع النمو ومغذي لمواشي الحظيرة ويزيد خصوبة التربة.' },
+        { id: 'wheat', name: 'قمح ذهبي مصري', icon: '🌾', seedCost: 8, sellPrice: 18, growTimeSec: 10, xp: 6, unlockLevel: 1, colorHex: 0xd69e2e, fruitColorHex: 0xf6e05e, desc: 'أساس الخير في القرية، يُطحن في الطاحونة ويُخبز منه العيش البلدي والفطير.' },
+        { id: 'corn', name: 'ذرة صفراء شامية', icon: '🌽', seedCost: 12, sellPrice: 26, growTimeSec: 14, xp: 8, unlockLevel: 1, colorHex: 0x48bb78, fruitColorHex: 0xfacc15, desc: 'كيزان ذرة مشوية وحبوب تدخل في صناعة الدقيق وأعلاف الطيور.' },
+        { id: 'tomato', name: 'طماطم بلدي', icon: '🍅', seedCost: 18, sellPrice: 38, growTimeSec: 18, xp: 12, unlockLevel: 2, colorHex: 0x2f855a, fruitColorHex: 0xe53e3e, desc: 'طماطم حمراء ناضجة مطلوبة يومياً في السوق الشعبي.' },
+        { id: 'fava', name: 'فول بلدي تدميس', icon: '🫘', seedCost: 22, sellPrice: 46, growTimeSec: 22, xp: 15, unlockLevel: 2, colorHex: 0x68d391, fruitColorHex: 0x975a16, desc: 'فول مصري أصيل لا تستغني عنه مائدة إفطار في القرية.' },
+        { id: 'sugarcane', name: 'قصب السكر', icon: '🎋', seedCost: 30, sellPrice: 64, growTimeSec: 28, xp: 20, unlockLevel: 3, colorHex: 0x81e6d9, fruitColorHex: 0xa3e635, desc: 'أعواد قصب طويلة تُعصر لتحضير عصير القصب الطازج والعسل الأسود.' },
+        { id: 'cotton', name: 'قطن طويل التيلة', icon: '☁️', seedCost: 45, sellPrice: 95, growTimeSec: 35, xp: 28, unlockLevel: 4, colorHex: 0x4fd1c5, fruitColorHex: 0xffffff, desc: 'الذهب الأبيض المصري الشهير، يُغزل في النول لإنتاج أفخر الأقمشة.' },
+        { id: 'dates', name: 'بلح زغلول وسمسم', icon: '🌴', seedCost: 60, sellPrice: 130, growTimeSec: 45, xp: 38, unlockLevel: 5, colorHex: 0xb7791f, fruitColorHex: 0xc53030, desc: 'محصول فاخر عالي العائد يُستخدم في الحلويات الفلاحي وطلبات كبار التجار.' }
+      ],
+      animals: [
+        { id: 'buffalo', name: 'جاموسة مصرية', icon: '🐃', buyCost: 65, feedItem: 'clover', feedCostCoins: 6, prodTimeSec: 14, productId: 'buffalo_milk', productName: 'لبن جاموسي دسم', productIcon: '🥛', productSell: 34, xp: 12, unlockLevel: 1, desc: 'تنتج أغنى لبن جاموسي لصناعة القشطة والزبدة الفلاحي والجبنة القريش.' },
+        { id: 'cow', name: 'بقرة بلدي', icon: '🐄', buyCost: 55, feedItem: 'clover', feedCostCoins: 5, prodTimeSec: 12, productId: 'cow_milk', productName: 'لبن بقري طازج', productIcon: '🍼', productSell: 28, xp: 10, unlockLevel: 1, desc: 'بقرة حلوب هادئة تدر اللبن البقري الطازج يومياً.' },
+        { id: 'goat', name: 'معزة بلدي', icon: '🐐', buyCost: 45, feedItem: 'clover', feedCostCoins: 4, prodTimeSec: 10, productId: 'goat_milk', productName: 'لبن ماعز جبلي', productIcon: '🍶', productSell: 24, xp: 9, unlockLevel: 2, desc: 'نشيطة وسريعة الإنتاج، لبنها مطلوب للجبن الفاخر.' },
+        { id: 'chicken', name: 'دجاج بلدي بياض', icon: '🐓', buyCost: 30, feedItem: 'corn', feedCostCoins: 3, prodTimeSec: 8, productId: 'baladi_eggs', productName: 'بيض بلدي طازج', productIcon: '🥚', productSell: 18, xp: 7, unlockLevel: 1, desc: 'دجاج بلدي ينتج البيض الطازج اللازم للمخبوزات والفطير.' },
+        { id: 'duck', name: 'بط مصري (مسكوفي/بلدي)', icon: '🦆', buyCost: 40, feedItem: 'corn', feedCostCoins: 4, prodTimeSec: 11, productId: 'duck_eggs', productName: 'بيض وريش بط', productIcon: '🪶', productSell: 25, xp: 9, unlockLevel: 2, desc: 'يسبح قرب الترعة وينتج بيض البط الكبير والريش الناعم للحرف.' }
+      ],
+      facilities: [
+        {
+          id: 'oven', name: 'الفرن البلدي الطيني', icon: '🥖', npcOwner: 'salma',
+          desc: 'فرن طيني تقليدي تخبز فيه سلمى العيش البلدي الساخن والفطير المشلتت المورّق.',
+          recipes: [
+            { id: 'baladi_bread', name: 'عيش بلدي ساخن', icon: '🫓', inputs: [{ id: 'wheat', count: 2 }], timeSec: 10, sellPrice: 52, xp: 16 },
+            { id: 'feteer_meshaltet', name: 'فطير مشلتت فلاحي', icon: '🥧', inputs: [{ id: 'wheat_flour', count: 1 }, { id: 'fellahi_butter', count: 1 }, { id: 'baladi_eggs', count: 1 }], timeSec: 16, sellPrice: 145, xp: 35 }
+          ]
+        },
+        {
+          id: 'dairy', name: 'معمل الألبان الفلاحي', icon: '🧀', npcOwner: 'salma',
+          desc: 'يحوّل اللبن الجاموسي والبقري الطازج إلى جبنة قريش بالحصيرة وزبدة فلاحي صفراء وبيضاء.',
+          recipes: [
+            { id: 'kareish_cheese', name: 'جبنة قريش بالحصيرة', icon: '🧀', inputs: [{ id: 'buffalo_milk', count: 1 }, { id: 'cow_milk', count: 1 }], timeSec: 12, sellPrice: 88, xp: 22 },
+            { id: 'fellahi_butter', name: 'زبدة فلاحي وقشطة', icon: '🧈', inputs: [{ id: 'buffalo_milk', count: 2 }], timeSec: 14, sellPrice: 96, xp: 26 }
+          ]
+        },
+        {
+          id: 'mill', name: 'الطاحونة الحجرية', icon: '⚙️', npcOwner: 'ragab',
+          desc: 'تطحن حبوب القمح والذرة والبرسيم لإنتاج الدقيق الفاخر وعلف المواشي المغذي.',
+          recipes: [
+            { id: 'wheat_flour', name: 'دقيق قمح فاخر', icon: '🥡', inputs: [{ id: 'wheat', count: 2 }], timeSec: 9, sellPrice: 48, xp: 14 },
+            { id: 'animal_feed', name: 'جوال علف مواشي ممتاز', icon: '🌾', inputs: [{ id: 'clover', count: 1 }, { id: 'corn', count: 1 }], timeSec: 8, sellPrice: 44, xp: 12 }
+          ]
+        },
+        {
+          id: 'press', name: 'عصّارة القصب والعسل', icon: '🍯', npcOwner: 'shawky',
+          desc: 'تعصر أعواد القصب الطازجة وتغليها لصناعة العسل الأسود المصري الشهير.',
+          recipes: [
+            { id: 'cane_juice', name: 'عصير قصب مرطّب', icon: '🥤', inputs: [{ id: 'sugarcane', count: 1 }], timeSec: 10, sellPrice: 92, xp: 22 },
+            { id: 'black_honey', name: 'عسل أسود نجع حمادي', icon: '🍯', inputs: [{ id: 'sugarcane', count: 2 }], timeSec: 16, sellPrice: 165, xp: 38 }
+          ]
+        },
+        {
+          id: 'loom', name: 'نول الغزل والنسيج', icon: '🧵', npcOwner: 'hassan',
+          desc: 'يغزل القطن المصري طويل التيلة وينسج منه أرقى الأثواب والمنسوجات اليدوية.',
+          recipes: [
+            { id: 'cotton_yarn', name: 'بكرة غزل قطني', icon: '🧶', inputs: [{ id: 'cotton', count: 1 }], timeSec: 14, sellPrice: 135, xp: 30 },
+            { id: 'egyptian_fabric', name: 'ثوب قماش قطن مصري', icon: '👘', inputs: [{ id: 'cotton_yarn', count: 1 }, { id: 'duck_eggs', count: 1 }], timeSec: 18, sellPrice: 220, xp: 48 }
+          ]
+        }
+      ],
+      upgrades: [
+        { id: 'expand_plots', name: 'توسعة الأراضي الزراعية (+2 قطعة أرض)', icon: '🚜', baseCost: 80, costMult: 1.55, maxLevel: 4, desc: 'استصلاح أراضٍ جديدة على ضفاف الترعة لزيادة الرقعة الزراعية حتى 20 قطعة.' },
+        { id: 'expand_storage', name: 'تعلية الصومعة والمخزن (+30 سعة)', icon: '🏺', baseCost: 70, costMult: 1.6, maxLevel: 5, desc: 'توسيع المخزن الريفي لاستيعاب كميات أكبر من المحاصيل والمنتجات المصنعة.' },
+        { id: 'upgrade_saqia', name: 'تطوير الساقية وشبكة الري (+سرعة نمو)', icon: '🌊', baseCost: 95, costMult: 1.65, maxLevel: 4, desc: 'يرفع كفاءة الساقية فيسرّع نمو المحاصيل المروية ويقلل الجهد.' },
+        { id: 'upgrade_workshops', name: 'تطوير الفرن البلدي والورش (-15% وقت تصنيع)', icon: '🔥', baseCost: 110, costMult: 1.7, maxLevel: 4, desc: 'تحسين نيران الفرن البلدي وتروس الطاحونة لإنجاز التصنيع في وقت أقصر.' },
+        { id: 'upgrade_souq', name: 'تجميل القرية وتطوير السوق (+15% أرباح الطلبات)', icon: '🏮', baseCost: 120, costMult: 1.7, maxLevel: 4, desc: 'إضافة فوانيس ومظلات للسوق الشعبي مما يرفع عوائد طلبات أهل القرية.' }
+      ]
+    };
+
+    const ITEM_CATALOG = {};
+    GAME_DATA.crops.forEach(c => {
+      ITEM_CATALOG[c.id] = { id: c.id, name: c.name, icon: c.icon, sellPrice: c.sellPrice, category: 'crop' };
+    });
+    GAME_DATA.animals.forEach(a => {
+      ITEM_CATALOG[a.productId] = { id: a.productId, name: a.productName, icon: a.productIcon, sellPrice: a.productSell, category: 'animal' };
+    });
+    GAME_DATA.facilities.forEach(f => {
+      f.recipes.forEach(r => {
+        ITEM_CATALOG[r.id] = { id: r.id, name: r.name, icon: r.icon, sellPrice: r.sellPrice, category: 'crafted' };
+      });
+    });
+
+    const QUEST_LIST = [
+      { id: 1, npc: 'ragab', title: 'جولة في القرية وحركة الكاميرا', desc: 'حرّك الكاميرا أو استخدم أزرار الانتقال السريع أو التدوير لاستكشاف القرية والترعة.', stat: 'cameraMoves', target: 1, rewardCoins: 30, rewardXp: 15 },
+      { id: 2, npc: 'ragab', title: 'أول بذرة في طمي النيل', desc: 'ازرع 4 قطع أرض بأي محصول (مثل البرسيم أو القمح).', stat: 'totalPlanted', target: 4, rewardCoins: 40, rewardXp: 20 },
+      { id: 3, npc: 'ragab', title: 'مية الترعة تروي الغيط', desc: 'اروِ 3 قطع أرض مزروعة باستخدام أداة الريّ أو زر "ريّ الكل".', stat: 'totalWatered', target: 3, rewardCoins: 45, rewardXp: 25 },
+      { id: 4, npc: 'ragab', title: 'موسم الحصاد الأول', desc: 'احصد 3 محاصيل ناضجة وأضفها إلى المخزن.', stat: 'totalHarvested', target: 3, rewardCoins: 55, rewardXp: 30 },
+      { id: 5, npc: 'shawky', title: 'أول بيعة في السوق', desc: 'بع أي محصول أو منتج من المخزن لتحقيق ربح إضافي.', stat: 'totalSoldItems', target: 2, rewardCoins: 60, rewardXp: 30 },
+      { id: 6, npc: 'salma', title: 'تعمير الحظيرة بالمواشي', desc: 'امتلِك حيوانين على الأقل في الحظيرة (جاموسة أو بقرة أو دجاج).', stat: 'animalsOwnedCount', target: 2, rewardCoins: 75, rewardXp: 35 },
+      { id: 7, npc: 'salma', title: 'خير الحظيرة الطازج', desc: 'أطعم حيوانات الحظيرة واجمع أول منتج حيواني (لبن أو بيض).', stat: 'totalAnimalCollected', target: 1, rewardCoins: 70, rewardXp: 35 },
+      { id: 8, npc: 'salma', title: 'ريحة العيش من الفرن البلدي', desc: 'ابدأ تصنيع أول وصفة في الفرن البلدي أو أي ورشة تصنيع.', stat: 'totalCraftStarted', target: 1, rewardCoins: 85, rewardXp: 40 },
+      { id: 9, npc: 'shawky', title: 'تلبية طلبات أهل البلد', desc: 'سلّم طلباً واحداً على الأقل في لوحة طلبات السوق الشعبي.', stat: 'totalOrdersCompleted', target: 1, rewardCoins: 100, rewardXp: 50 },
+      { id: 10, npc: 'hassan', title: 'أول خطوة في تطوير القرية', desc: 'نفّذ ترقية واحدة في قسم التطوير والتوسعة مع المهندس حسن.', stat: 'totalUpgradesBought', target: 1, rewardCoins: 120, rewardXp: 60 },
+      { id: 11, npc: 'ragab', title: 'غيط أخضر يسرّ الناظرين', desc: 'ازرع إجمالي 10 قطع أرض زراعية.', stat: 'totalPlanted', target: 10, rewardCoins: 95, rewardXp: 50 },
+      { id: 12, npc: 'ragab', title: 'بركة الساقية الدوارة', desc: 'اروِ 10 قطع أرض مزروعة من مياه الترعة.', stat: 'totalWatered', target: 10, rewardCoins: 100, rewardXp: 55 },
+      { id: 13, npc: 'ragab', title: 'مخازن القمح والذرة', desc: 'احصد إجمالي 12 محصولاً من الحقول.', stat: 'totalHarvested', target: 12, rewardCoins: 120, rewardXp: 65 },
+      { id: 14, npc: 'salma', title: 'حظيرة عامرة بالخير', desc: 'اجمع 4 منتجات من حيوانات الحظيرة (ألبان وبيض).', stat: 'totalAnimalCollected', target: 4, rewardCoins: 135, rewardXp: 70 },
+      { id: 15, npc: 'salma', title: 'شيف القرية الماهر', desc: 'أكمل تصنيع واستلام 3 منتجات من الورش والفرن البلدي.', stat: 'totalCraftCollected', target: 3, rewardCoins: 150, rewardXp: 80 },
+      { id: 16, npc: 'shawky', title: 'تاجر السوق الأمين', desc: 'لبِّ 3 طلبات لأهل القرية في السوق الشعبي.', stat: 'totalOrdersCompleted', target: 3, rewardCoins: 170, rewardXp: 90 },
+      { id: 17, npc: 'hassan', title: 'توسيع الرقعة الزراعية', desc: 'افتح 14 قطعة أرض زراعية على الأقل.', stat: 'unlockedPlotsCount', target: 14, rewardCoins: 185, rewardXp: 95 },
+      { id: 18, npc: 'shawky', title: 'حركة بيع نشطة', desc: 'بع 10 وحدات من المحاصيل أو المنتجات في المخزن.', stat: 'totalSoldItems', target: 10, rewardCoins: 160, rewardXp: 85 },
+      { id: 19, npc: 'salma', title: 'اكتفاء الحظيرة', desc: 'امتلك 4 حيوانات في حظيرة القرية.', stat: 'animalsOwnedCount', target: 4, rewardCoins: 200, rewardXp: 100 },
+      { id: 20, npc: 'hassan', title: 'مهندس التطوير الريفي', desc: 'نفّذ 3 ترقيات في القرية والمزرعة.', stat: 'totalUpgradesBought', target: 3, rewardCoins: 240, rewardXp: 120 },
+      { id: 21, npc: 'ragab', title: 'مزارع الدلتا الكبير', desc: 'ازرع إجمالي 25 محصولاً في أراضي القرية.', stat: 'totalPlanted', target: 25, rewardCoins: 230, rewardXp: 120 },
+      { id: 22, npc: 'ragab', title: 'حصاد المواسم الكبرى', desc: 'احصد إجمالي 25 محصولاً ناضجاً.', stat: 'totalHarvested', target: 25, rewardCoins: 260, rewardXp: 135 },
+      { id: 23, npc: 'salma', title: 'الحظيرة الكاملة (5 أنواع)', desc: 'امتلك الأنواع الخمسة جميعها في الحظيرة (جاموسة، بقرة، معزة، دجاج، بط).', stat: 'animalsOwnedCount', target: 5, rewardCoins: 300, rewardXp: 150 },
+      { id: 24, npc: 'salma', title: 'نهضة الصناعات الريفية', desc: 'أكمل تصنيع 7 منتجات حرفية وغذائية في الورش.', stat: 'totalCraftCollected', target: 7, rewardCoins: 310, rewardXp: 160 },
+      { id: 25, npc: 'shawky', title: 'عميد السوق الشعبي', desc: 'أنجز 6 طلبات كاملة لأهل القرية.', stat: 'totalOrdersCompleted', target: 6, rewardCoins: 350, rewardXp: 180 },
+      { id: 26, npc: 'hassan', title: 'استصلاح الـ 18 فداناً', desc: 'افتح 18 قطعة أرض زراعية.', stat: 'unlockedPlotsCount', target: 18, rewardCoins: 380, rewardXp: 190 },
+      { id: 27, npc: 'shawky', title: 'قافلة التجارة المصرية', desc: 'بع 25 منتجاً أو محصولاً في السوق.', stat: 'totalSoldItems', target: 25, rewardCoins: 400, rewardXp: 200 },
+      { id: 28, npc: 'salma', title: 'وفرة الألبان والبيض', desc: 'اجمع 12 منتجاً حيوانياً من الحظيرة.', stat: 'totalAnimalCollected', target: 12, rewardCoins: 420, rewardXp: 210 },
+      { id: 29, npc: 'hassan', title: 'القرية النموذجية المتكاملة', desc: 'افتح جميع الـ 20 قطعة أرض زراعية بالكامل.', stat: 'unlockedPlotsCount', target: 20, rewardCoins: 500, rewardXp: 250 },
+      { id: 30, npc: 'ragab', title: 'وسام حكاية بلد الذهبي', desc: 'نفّذ 6 ترقيات شاملة في القرية والمزرعة.', stat: 'totalUpgradesBought', target: 6, rewardCoins: 750, rewardXp: 400 }
+    ];
+
+    const STORAGE_KEY = 'hekayet_balad_save_v1';
+
+    function createInitialState() {
+      const plots = [];
+      for (let i = 0; i < 20; i++) {
+        plots.push({
+          id: i,
+          unlocked: i < 12,
+          cropId: i === 0 ? 'wheat' : (i === 1 ? 'clover' : (i === 2 ? 'corn' : null)),
+          plantedAt: i < 3 ? Date.now() - 8000 : 0,
+          elapsedSec: i === 0 ? 10 : (i === 1 ? 4 : (i === 2 ? 7 : 0)),
+          watered: i === 0 || i === 1
+        });
+      }
+
+      const animals = {};
+      GAME_DATA.animals.forEach((a, idx) => {
+        animals[a.id] = {
+          owned: idx === 0 || idx === 3,
+          feeding: idx === 0,
+          elapsedSec: idx === 0 ? 10 : 0
+        };
+      });
+
+      const facilities = {};
+      GAME_DATA.facilities.forEach(f => {
+        facilities[f.id] = {
+          activeRecipeId: null,
+          elapsedSec: 0
+        };
+      });
+
+      const upgrades = {};
+      GAME_DATA.upgrades.forEach(u => {
+        upgrades[u.id] = 0;
+      });
+
+      return {
+        coins: 180,
+        xp: 10,
+        level: 1,
+        seasonIndex: 0,
+        selectedTool: 'select',
+        selectedSeed: 'wheat',
+        selectedObject: { type: 'plot', id: 0 },
+        speedMultiplier: 1,
+        dayMode: 'day',
+        audioMuted: false,
+        inventory: {
+          wheat: 3,
+          clover: 3,
+          corn: 2,
+          buffalo_milk: 1,
+          baladi_eggs: 1
+        },
+        plots,
+        animals,
+        facilities,
+        upgrades,
+        orders: [],
+        completedQuests: [],
+        stats: {
+          cameraMoves: 0,
+          totalPlanted: 3,
+          totalWatered: 2,
+          totalHarvested: 0,
+          totalSoldItems: 0,
+          totalAnimalCollected: 0,
+          totalCraftStarted: 0,
+          totalCraftCollected: 0,
+          totalOrdersCompleted: 0,
+          totalUpgradesBought: 0
+        },
+        lastTimestamp: Date.now()
+      };
+    }
+
+    let state = createInitialState();
+
+    function getItemEffectivePrice(itemId) {
+      const meta = ITEM_CATALOG[itemId];
+      if (!meta) return 10;
+      const season = SEASONS[state.seasonIndex || 0] || SEASONS[0];
+      const mult = season.bonusItems.includes(itemId) ? season.mult : 1.0;
+      return Math.round(meta.sellPrice * mult);
+    }
+
+    function generateOrder(slotIndex) {
+      const npcKeys = ['ragab', 'salma', 'shawky', 'hassan'];
+      const npcId = npcKeys[slotIndex % npcKeys.length];
+      const availableCrops = GAME_DATA.crops.filter(c => c.unlockLevel <= state.level);
+      const crop = availableCrops[slotIndex % availableCrops.length] || GAME_DATA.crops[0];
+      const count1 = 1 + (slotIndex % 2);
+
+      const items = [{ id: crop.id, count: count1 }];
+      if (slotIndex % 4 === 1) items.push({ id: 'baladi_eggs', count: 1 });
+      else if (slotIndex % 4 === 2) items.push({ id: 'baladi_bread', count: 1 });
+      else if (slotIndex % 4 === 3) items.push({ id: 'buffalo_milk', count: 1 });
+
+      let baseValue = 0;
+      items.forEach(it => {
+        baseValue += getItemEffectivePrice(it.id) * it.count;
+      });
+
+      const souqBonus = 1 + (state.upgrades.upgrade_souq || 0) * 0.15;
+      const rewardCoins = Math.round(baseValue * 1.35 * souqBonus);
+      const rewardXp = Math.round(12 + items.length * 10 + state.level * 3);
+
+      const titles = [
+        'طلبية الغيط الصباحية',
+        'مستلزمات الفرن والخبيز',
+        'عقد توريد السوق الشعبي',
+        'تموين ورشة القرية'
+      ];
+
+      return {
+        id: 'ord_' + Date.now() + '_' + slotIndex + '_' + Math.floor(Math.random() * 999),
+        npcId,
+        title: titles[slotIndex % titles.length],
+        items,
+        rewardCoins,
+        rewardXp
+      };
+    }
+
+    function ensureOrders() {
+      if (!Array.isArray(state.orders) || state.orders.length < 4) {
+        state.orders = [0, 1, 2, 3].map(i => generateOrder(i));
+      }
+    }
+
+    function getStorageMax() {
+      return 50 + (state.upgrades.expand_storage || 0) * 30;
+    }
+
+    function getStorageUsed() {
+      return Object.values(state.inventory).reduce((acc, v) => acc + (Number(v) || 0), 0);
+    }
+
+    function getXpRequired(lvl) {
+      return lvl * 50;
+    }
+
+    function getDynamicStat(statName) {
+      if (statName === 'animalsOwnedCount') {
+        return Object.values(state.animals).filter(a => a.owned).length;
+      }
+      if (statName === 'unlockedPlotsCount') {
+        return state.plots.filter(p => p.unlocked).length;
+      }
+      return state.stats[statName] || 0;
+    }
+
+    function saveGame() {
+      state.lastTimestamp = Date.now();
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (err) {}
+    }
+
+    function loadGame() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.plots) && parsed.plots.length === 20) {
+            state = Object.assign(createInitialState(), parsed);
+            const now = Date.now();
+            const deltaSec = Math.max(0, Math.min(86400, (now - (state.lastTimestamp || now)) / 1000));
+            if (deltaSec > 3) {
+              advanceTimers(deltaSec, true);
+              setTimeout(() => {
+                showToast(`مرحباً بعودتك! تقدّم الإنتاج خلال غيابك (${Math.round(deltaSec)} ثانية) 🌾`, 'info');
+              }, 600);
+            }
+          }
+        }
+      } catch (err) {}
+      ensureOrders();
+    }
+
+    let audioCtx = null;
+    function playSound(type) {
+      if (state.audioMuted) return;
+      try {
+        if (!audioCtx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          audioCtx = new AudioContextClass();
+        }
+        if (audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'plant') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(480, now + 0.11);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+          osc.start(now);
+          osc.stop(now + 0.13);
+        } else if (type === 'water') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(520, now);
+          osc.frequency.exponentialRampToValueAtTime(290, now + 0.16);
+          gain.gain.setValueAtTime(0.12, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.17);
+          osc.start(now);
+          osc.stop(now + 0.17);
+        } else if (type === 'harvest' || type === 'coin') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(587.33, now);
+          osc.frequency.setValueAtTime(740.0, now + 0.07);
+          osc.frequency.setValueAtTime(880.0, now + 0.14);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
+          osc.start(now);
+          osc.stop(now + 0.28);
+        } else if (type === 'levelup') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.setValueAtTime(554.37, now + 0.1);
+          osc.frequency.setValueAtTime(659.25, now + 0.2);
+          osc.frequency.setValueAtTime(880, now + 0.3);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+          osc.start(now);
+          osc.stop(now + 0.55);
+        } else if (type === 'error') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(190, now);
+          osc.frequency.setValueAtTime(150, now + 0.1);
+          gain.gain.setValueAtTime(0.1, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc.start(now);
+          osc.stop(now + 0.22);
+        }
+      } catch (e) {}
+    }
+
+    function showToast(message, kind = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const el = document.createElement('div');
+      const colors = {
+        success: 'bg-emerald-800 text-emerald-50 border-emerald-400',
+        warn: 'bg-amber-800 text-amber-50 border-amber-400',
+        error: 'bg-red-800 text-red-50 border-red-400',
+        info: 'bg-sky-900 text-sky-50 border-sky-400'
+      };
+      el.className = `px-4 py-2 rounded-2xl border-2 shadow-xl text-xs sm:text-sm font-extrabold flex items-center gap-2 transition-all duration-300 ${colors[kind] || colors.success}`;
+      el.textContent = message;
+      while (container.children.length >= 2) { container.removeChild(container.firstChild); }
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(-10px)';
+        setTimeout(() => el.remove(), 300);
+      }, 2600);
+    }
+
+    function spawnFloatingText(text, color = '#fef08a', x = null, y = null) {
+      const layer = document.getElementById('floating-fx-layer');
+      if (!layer) return;
+      const div = document.createElement('div');
+      div.className = 'floating-reward text-sm sm:text-base';
+      div.style.color = color;
+      const posX = x !== null ? x : (window.innerWidth * 0.5 + (Math.random() - 0.5) * 140);
+      const posY = y !== null ? y : (window.innerHeight * 0.48 + (Math.random() - 0.5) * 80);
+      div.style.left = `${posX}px`;
+      div.style.top = `${posY}px`;
+      div.textContent = text;
+      layer.appendChild(div);
+      setTimeout(() => div.remove(), 1550);
+    }
+
+    function addXpAndCoins(coinsDelta, xpDelta, fxLabel = '') {
+      if (coinsDelta !== 0) {
+        state.coins = Math.max(0, state.coins + coinsDelta);
+      }
+      if (xpDelta > 0) {
+        state.xp += xpDelta;
+        while (state.xp >= getXpRequired(state.level)) {
+          state.xp -= getXpRequired(state.level);
+          state.level += 1;
+          playSound('levelup');
+          showToast(`🎉 مبروك! ارتفع مستواك إلى المستوى ${state.level} وفتحت محاصيل ومزايا جديدة!`, 'success');
+        }
+      }
+      if (fxLabel) {
+        spawnFloatingText(fxLabel, '#fde047');
+      }
+      updateHUD();
+      saveGame();
+    }
+
+    function addToInventory(itemId, count) {
+      const used = getStorageUsed();
+      const max = getStorageMax();
+      if (used + count > max) {
+        playSound('error');
+        showToast('🏺 المخزن ممتلئ! بِع بعض المنتجات أو طوّر الصومعة مع المهندس حسن.', 'error');
+        return false;
+      }
+      state.inventory[itemId] = (state.inventory[itemId] || 0) + count;
+      return true;
+    }
+
+    function hasIngredients(inputs) {
+      return inputs.every(req => (state.inventory[req.id] || 0) >= req.count);
+    }
+
+    function consumeIngredients(inputs) {
+      if (!hasIngredients(inputs)) return false;
+      inputs.forEach(req => {
+        state.inventory[req.id] = Math.max(0, (state.inventory[req.id] || 0) - req.count);
+      });
+      return true;
+    }
+
+    function getSaqiaWaterBonus() {
+      return 1.35 + (state.upgrades.upgrade_saqia || 0) * 0.12;
+    }
+
+    function getWorkshopSpeedBonus() {
+      return 1 + (state.upgrades.upgrade_workshops || 0) * 0.18;
+    }
+
+    function plantPlot(plotId, seedId = state.selectedSeed, silent = false) {
+      const plot = state.plots[plotId];
+      if (!plot) return false;
+      if (!plot.unlocked) {
+        if (!silent) {
+          playSound('error');
+          showToast('🔒 هذه الأرض غير مستصلحة بعد. افتحها من قسم التطوير والتوسعة!', 'warn');
+        }
+        return false;
+      }
+      if (plot.cropId) {
+        if (!silent) showToast('🌱 هذه الأرض مزروعة بالفعل!', 'info');
+        return false;
+      }
+      const crop = GAME_DATA.crops.find(c => c.id === seedId);
+      if (!crop) return false;
+      if (state.level < crop.unlockLevel) {
+        if (!silent) {
+          playSound('error');
+          showToast(`🔒 محصول ${crop.name} يتطلب المستوى ${crop.unlockLevel}.`, 'warn');
+        }
+        return false;
+      }
+      if (state.coins < crop.seedCost) {
+        if (!silent) {
+          playSound('error');
+          showToast(`🪙 رصيدك غير كافٍ لشراء بذور ${crop.name} (${crop.seedCost} ج.م).`, 'error');
+        }
+        return false;
+      }
+
+      state.coins -= crop.seedCost;
+      plot.cropId = crop.id;
+      plot.plantedAt = Date.now();
+      plot.elapsedSec = 0;
+      plot.watered = (state.upgrades.upgrade_saqia || 0) >= 3;
+      state.stats.totalPlanted += 1;
+      if (plot.watered) state.stats.totalWatered += 1;
+
+      if (!silent) {
+        playSound('plant');
+        spawnFloatingText(`-${crop.seedCost} ج.م 🌱 زراعة ${crop.name}`, '#86efac');
+      }
+      sync3DWorld();
+      updateHUD();
+      renderInspector();
+      saveGame();
+      return true;
+    }
+
+    function waterPlot(plotId, silent = false) {
+      const plot = state.plots[plotId];
+      if (!plot || !plot.unlocked) return false;
+      if (!plot.cropId) {
+        if (!silent) showToast('💧 ازرع الأرض أولاً قبل ريّها من الترعة!', 'info');
+        return false;
+      }
+      if (plot.watered) {
+        if (!silent) showToast('💧 هذه الأرض مروية بالفعل بطمي النيل.', 'info');
+        return false;
+      }
+      plot.watered = true;
+      state.stats.totalWatered += 1;
+      if (!silent) {
+        playSound('water');
+        spawnFloatingText('💧 ريّ من الساقية (+سرعة نمو)', '#7dd3fc');
+      }
+      sync3DWorld();
+      updateHUD();
+      renderInspector();
+      saveGame();
+      return true;
+    }
+
+    function isPlotReady(plot) {
+      if (!plot || !plot.cropId) return false;
+      const crop = GAME_DATA.crops.find(c => c.id === plot.cropId);
+      if (!crop) return false;
+      return plot.elapsedSec >= crop.growTimeSec;
+    }
+
+    function harvestPlot(plotId, silent = false) {
+      const plot = state.plots[plotId];
+      if (!plot || !plot.cropId) return false;
+      const crop = GAME_DATA.crops.find(c => c.id === plot.cropId);
+      if (!crop) return false;
+      if (plot.elapsedSec < crop.growTimeSec) {
+        if (!silent) {
+          const left = Math.ceil(crop.growTimeSec - plot.elapsedSec);
+          showToast(`⏳ ${crop.name} لا يزال ينمو (${left} ثانية متبقية). اروِه لتسريع النمو!`, 'info');
+        }
+        return false;
+      }
+
+      if (!addToInventory(crop.id, 1)) return false;
+
+      plot.cropId = null;
+      plot.elapsedSec = 0;
+      plot.watered = false;
+      state.stats.totalHarvested += 1;
+      addXpAndCoins(0, crop.xp, !silent ? `+1 ${crop.icon} ${crop.name} (+${crop.xp} XP)` : '');
+      if (!silent) playSound('harvest');
+
+      sync3DWorld();
+      updateHUD();
+      renderInspector();
+      saveGame();
+      return true;
+    }
+
+    function plantAllEmptyPlots() {
+      let count = 0;
+      for (let i = 0; i < state.plots.length; i++) {
+        if (state.plots[i].unlocked && !state.plots[i].cropId) {
+          if (plantPlot(i, state.selectedSeed, true)) {
+            count++;
+          } else {
+            break;
+          }
+        }
+      }
+      if (count > 0) {
+        playSound('plant');
+        showToast(`🚜 تمت زراعة ${count} قطع أرض بمحصول ${ITEM_CATALOG[state.selectedSeed].name}!`, 'success');
+      } else {
+        showToast('لا توجد أراضٍ فارغة متاحة أو الرصيد غير كافٍ.', 'warn');
+      }
+    }
+
+    function waterAllPlantedPlots() {
+      let count = 0;
+      for (let i = 0; i < state.plots.length; i++) {
+        if (state.plots[i].unlocked && state.plots[i].cropId && !state.plots[i].watered) {
+          if (waterPlot(i, true)) count++;
+        }
+      }
+      if (count > 0) {
+        playSound('water');
+        showToast(`🌊 دارت الساقية وروت ${count} قطع أرض بمياه الترعة!`, 'success');
+      } else {
+        showToast('جميع الأراضي المزروعة مروية بالفعل!', 'info');
+      }
+    }
+
+    function harvestAllReadyPlots() {
+      let count = 0;
+      for (let i = 0; i < state.plots.length; i++) {
+        if (isPlotReady(state.plots[i])) {
+          if (harvestPlot(i, true)) count++;
+          else break;
+        }
+      }
+      if (count > 0) {
+        playSound('harvest');
+        showToast(`🌾 تم حصاد ${count} محاصيل ناضجة وإضافتها إلى الصومعة والمخزن!`, 'success');
+      } else {
+        showToast('لا توجد محاصيل جاهزة للحصاد حالياً.', 'info');
+      }
+    }
+
+    function instantGrowAll() {
+      state.plots.forEach(p => {
+        if (p.cropId) {
+          const c = GAME_DATA.crops.find(x => x.id === p.cropId);
+          if (c && p.elapsedSec < c.growTimeSec) {
+            p.elapsedSec = c.growTimeSec;
+          }
+        }
+      });
+      GAME_DATA.animals.forEach(a => {
+        const st = state.animals[a.id];
+        if (st && st.owned && st.feeding && st.elapsedSec < a.prodTimeSec) {
+          st.elapsedSec = a.prodTimeSec;
+        }
+      });
+      GAME_DATA.facilities.forEach(f => {
+        const st = state.facilities[f.id];
+        if (st && st.activeRecipeId) {
+          const rec = f.recipes.find(r => r.id === st.activeRecipeId);
+          if (rec && st.elapsedSec < rec.timeSec) {
+            st.elapsedSec = rec.timeSec;
+          }
+        }
+      });
+      playSound('harvest');
+      sync3DWorld();
+      updateHUD();
+      renderInspector();
+      refreshActiveModal();
+      showToast('✨ وضع الاختبار: تم إنضاج جميع المحاصيل والحظيرة والورش فوراً!', 'success');
+    }
+
+    function advanceTimers(dtSec, silent = false) {
+      const mult = state.speedMultiplier || 1;
+      const effDt = dtSec * mult;
+      const waterBonus = getSaqiaWaterBonus();
+      const craftBonus = getWorkshopSpeedBonus();
+
+      let visualStageChanged = false;
+
+      state.plots.forEach(p => {
+        if (!p.cropId) return;
+        const crop = GAME_DATA.crops.find(c => c.id === p.cropId);
+        if (!crop) return;
+        if (p.elapsedSec < crop.growTimeSec) {
+          const prevStage = Math.floor((p.elapsedSec / crop.growTimeSec) * 3);
+          const rate = p.watered ? waterBonus : 1.0;
+          p.elapsedSec = Math.min(crop.growTimeSec, p.elapsedSec + effDt * rate);
+          const newStage = Math.floor((p.elapsedSec / crop.growTimeSec) * 3);
+          if (prevStage !== newStage || p.elapsedSec >= crop.growTimeSec) {
+            visualStageChanged = true;
+          }
+        }
+      });
+
+      GAME_DATA.animals.forEach(a => {
+        const st = state.animals[a.id];
+        if (st && st.owned && st.feeding && st.elapsedSec < a.prodTimeSec) {
+          st.elapsedSec = Math.min(a.prodTimeSec, st.elapsedSec + effDt);
+        }
+      });
+
+      GAME_DATA.facilities.forEach(f => {
+        const st = state.facilities[f.id];
+        if (st && st.activeRecipeId) {
+          const rec = f.recipes.find(r => r.id === st.activeRecipeId);
+          if (rec && st.elapsedSec < rec.timeSec) {
+            st.elapsedSec = Math.min(rec.timeSec, st.elapsedSec + effDt * craftBonus);
+          }
+        }
+      });
+
+      if (visualStageChanged && !silent) {
+        sync3DWorld();
+      }
+    }
+
+    const cameraState = {
+      targetX: 0,
+      targetZ: 0,
+      zoom: 1.05,
+      yawIndex: 0,
+      yawAngle: Math.PI / 4,
+      targetYawAngle: Math.PI / 4,
+      isDragging: false,
+      dragStartX: 0,
+      dragStartY: 0,
+      pointerMoved: false
+    };
+
+    const CAMERA_BOOKMARKS = {
+      overview: { x: 0, z: 0, zoom: 0.95, label: 'نظرة شاملة للقرية' },
+      farm: { x: -2.5, z: 2.0, zoom: 1.25, label: 'الحقول الزراعية (20 قطعة)' },
+      canal: { x: -9.5, z: 0, zoom: 1.3, label: 'ترعة الدلتا والساقية' },
+      barn: { x: 7.5, z: -4.0, zoom: 1.35, label: 'حظيرة المواشي والطيور' },
+      workshops: { x: 7.5, z: 4.5, zoom: 1.35, label: 'الفرن البلدي والورش الخمس' },
+      souq: { x: -1.5, z: -8.5, zoom: 1.35, label: 'السوق الشعبي والطلبات' }
+    };
+
+    function getPlotPosition(index) {
+      const col = index % 4;
+      const row = Math.floor(index / 4);
+      return {
+        x: -6.0 + col * 2.4,
+        z: -1.2 + row * 2.3
+      };
+    }
+
+    const LANDMARKS_3D = [
+      { id: 'canal_saqia', type: 'saqia', name: 'الساقية والترعة المصرية', subtitle: 'تروي الغيطان بمياه النيل العذبة', icon: '🌊', x: -10.2, z: 1.5, w: 2.6, d: 2.6, h: 2.8, color: '#6b4423' },
+      { id: 'farmhouse', type: 'house', name: 'البيت الريفي المصري', subtitle: 'دار العائلة وسط النخيل', icon: '🏡', x: -5.5, z: -6.8, w: 3.4, d: 3.0, h: 3.2, color: '#e6ccb2' },
+      { id: 'pigeon_tower', type: 'pigeon', name: 'برج الحمام الفخاري', subtitle: 'معلم مصري أصيل يزين القرية', icon: '🕊️', x: -8.2, z: -6.5, w: 1.9, d: 1.9, h: 4.4, color: '#d4a373', modal: 'mayor' },
+      { id: 'granary', type: 'storage', name: 'الصومعة والمخزن الريفي', subtitle: 'حفظ المحاصيل والمنتجات وبيعها', icon: '🏺', x: -1.2, z: -5.2, w: 2.6, d: 2.6, h: 3.8, color: '#d4a373', modal: 'storage' },
+      { id: 'souq_market', type: 'souq', name: 'السوق الشعبي ولوحة الطلبات', subtitle: 'المعلم شوقي وطلبات أهل القرية', icon: '🏪', x: 3.2, z: -7.2, w: 3.8, d: 2.6, h: 2.6, color: '#c05621', modal: 'souq' },
+      { id: 'animal_barn', type: 'barn', name: 'حظيرة المواشي والدواجن', subtitle: '5 أنواع حيوانات بلدية منتجة', icon: '🐄', x: 7.8, z: -3.5, w: 4.2, d: 3.6, h: 2.9, color: '#9c6644', modal: 'barn' },
+      { id: 'oven', type: 'facility', facilityId: 'oven', name: 'الفرن البلدي الطيني', subtitle: 'عيش بلدي وفطير مشلتت (سلمى)', icon: '🥖', x: 6.2, z: 1.5, w: 2.3, d: 2.3, h: 2.4, color: '#b45309', modal: 'crafting' },
+      { id: 'dairy', type: 'facility', facilityId: 'dairy', name: 'معمل الألبان الفلاحي', subtitle: 'جبنة قريش وزبدة فلاحي', icon: '🧀', x: 9.2, z: 1.5, w: 2.3, d: 2.3, h: 2.4, color: '#eab308', modal: 'crafting' },
+      { id: 'mill', type: 'facility', facilityId: 'mill', name: 'الطاحونة الحجرية', subtitle: 'طحن الدقيق وتجهيز الأعلاف', icon: '⚙️', x: 6.2, z: 4.6, w: 2.3, d: 2.3, h: 3.2, color: '#78716c', modal: 'crafting' },
+      { id: 'press', type: 'facility', facilityId: 'press', name: 'عصّارة القصب والعسل', subtitle: 'عصير قصب وعسل أسود', icon: '🍯', x: 9.2, z: 4.6, w: 2.3, d: 2.3, h: 2.5, color: '#15803d', modal: 'crafting' },
+      { id: 'loom', type: 'facility', facilityId: 'loom', name: 'نول الغزل والنسيج', subtitle: 'غزل القطن المصري طويل التيلة', icon: '🧵', x: 7.7, z: 7.6, w: 2.6, d: 2.2, h: 2.5, color: '#0369a1', modal: 'crafting' }
+    ];
+
+    const NPCS_3D = [
+      { id: 'ragab', name: 'عم رجب', role: 'كبير المزارعين', x: -7.8, z: 2.2, color: '#3b82f6', modal: 'seeds' },
+      { id: 'salma', name: 'سلمى', role: 'الفرن والألبان', x: 4.6, z: 1.8, color: '#ec4899', modal: 'crafting' },
+      { id: 'shawky', name: 'المعلم شوقي', role: 'تاجر السوق', x: 2.2, z: -5.2, color: '#8b5cf6', modal: 'souq' },
+      { id: 'hassan', name: 'المهندس حسن', role: 'التطوير والساقية', x: 4.6, z: 6.2, color: '#10b981', modal: 'upgrades' }
+    ];
+
+    const PALM_TREES_3D = [
+      { x: -8.6, z: -8.5, s: 1.1 }, { x: -8.5, z: -3.8, s: 0.95 }, { x: -8.5, z: 5.5, s: 1.05 },
+      { x: -8.6, z: 8.8, s: 1.0 }, { x: -12.4, z: -5.0, s: 1.15 }, { x: -12.2, z: 0.5, s: 1.0 },
+      { x: -12.3, z: 6.2, s: 1.1 }, { x: -3.2, z: -8.2, s: 0.95 }, { x: 6.8, z: -7.5, s: 1.05 },
+      { x: 10.6, z: -6.2, s: 1.0 }, { x: 11.2, z: -0.8, s: 0.95 }, { x: 11.2, z: 3.5, s: 1.1 },
+      { x: 10.8, z: 8.2, s: 1.0 }, { x: 2.5, z: 9.2, s: 1.05 }, { x: -3.5, z: 9.6, s: 0.9 }
+    ];
+
+    let useThreeWebGL = false;
+    let scene, camera, renderer, dirLight, hemiLight;
+    let plotMeshes = [];
+    let interactiveMeshes = [];
+    let saqiaWheelMesh = null;
+    let millBladesMesh = null;
+    let canalBoatMesh = null;
+    let animal3DGroups = {};
+
+    function canCreateWebGLContext() {
+      try {
+        const testCanvas = document.createElement('canvas');
+        const gl = testCanvas.getContext('webgl') || testCanvas.getContext('experimental-webgl');
+        return Boolean(gl);
+      } catch (e) {
+        return false;
+      }
+    }
+
+    window.tryUpgradeThreeJS = function() {
+      if (!useThreeWebGL && typeof THREE !== 'undefined' && canCreateWebGLContext()) {
+        const oldCanvas = document.getElementById('game-canvas');
+        if (oldCanvas && oldCanvas.parentNode) {
+          try {
+            const freshCanvas = oldCanvas.cloneNode(false);
+            oldCanvas.parentNode.replaceChild(freshCanvas, oldCanvas);
+            renderer = new THREE.WebGLRenderer({ canvas: freshCanvas, antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            useThreeWebGL = true;
+            buildThreeScene();
+            setupViewportInput(freshCanvas);
+          } catch (e) {
+            useThreeWebGL = false;
+          }
+        }
+      }
+    };
+
+    function init3DEngine() {
+      const canvas = document.getElementById('game-canvas');
+      if (typeof THREE !== 'undefined' && canCreateWebGLContext()) {
+        try {
+          renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+          renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          useThreeWebGL = true;
+          buildThreeScene();
+        } catch (err) {
+          useThreeWebGL = false;
+        }
+      }
+      setupViewportInput(document.getElementById('game-canvas'));
+      window.addEventListener('resize', onViewportResize);
+    }
+
+    function buildThreeScene() {
+      if (!useThreeWebGL) return;
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xdbeafe);
+
+      const aspect = window.innerWidth / window.innerHeight;
+      const d = 13.5;
+      camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 200);
+      updateThreeCamera();
+
+      hemiLight = new THREE.HemisphereLight(0xfffbeb, 0x65a30d, 0.72);
+      scene.add(hemiLight);
+
+      dirLight = new THREE.DirectionalLight(0xfff7ed, 0.95);
+      dirLight.position.set(18, 28, 16);
+      dirLight.castShadow = true;
+      dirLight.shadow.mapSize.width = 1024;
+      dirLight.shadow.mapSize.height = 1024;
+      dirLight.shadow.camera.near = 1;
+      dirLight.shadow.camera.far = 80;
+      const sd = 22;
+      dirLight.shadow.camera.left = -sd;
+      dirLight.shadow.camera.right = sd;
+      dirLight.shadow.camera.top = sd;
+      dirLight.shadow.camera.bottom = -sd;
+      scene.add(dirLight);
+
+      const groundGeo = new THREE.BoxGeometry(34, 1.2, 28);
+      const groundMat = new THREE.MeshLambertMaterial({ color: 0x65a30d });
+      const ground = new THREE.Mesh(groundGeo, groundMat);
+      ground.position.set(-0.5, -0.6, 0.5);
+      ground.receiveShadow = true;
+      scene.add(ground);
+
+      const roadMat = new THREE.MeshLambertMaterial({ color: 0xd6b88c });
+      const mainRoad = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.08, 22), roadMat);
+      mainRoad.position.set(3.2, 0.04, 0.8);
+      mainRoad.receiveShadow = true;
+      scene.add(mainRoad);
+
+      const crossRoad = new THREE.Mesh(new THREE.BoxGeometry(19, 0.08, 2.4), roadMat);
+      crossRoad.position.set(-1.0, 0.04, -3.2);
+      crossRoad.receiveShadow = true;
+      scene.add(crossRoad);
+
+      const canalWaterGeo = new THREE.BoxGeometry(3.2, 0.3, 28);
+      const canalWaterMat = new THREE.MeshLambertMaterial({ color: 0x0284c7 });
+      const canalMesh = new THREE.Mesh(canalWaterGeo, canalWaterMat);
+      canalMesh.position.set(-10.5, -0.05, 0.5);
+      scene.add(canalMesh);
+
+      [-3.2, 4.5].forEach(bz => {
+        const bridge = new THREE.Mesh(new THREE.BoxGeometry(4.0, 0.35, 2.0), new THREE.MeshLambertMaterial({ color: 0x92400e }));
+        bridge.position.set(-10.5, 0.25, bz);
+        bridge.castShadow = true;
+        scene.add(bridge);
+      });
+
+      canalBoatMesh = new THREE.Group();
+      const hull = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.35, 2.2), new THREE.MeshLambertMaterial({ color: 0x78350f }));
+      const sail = new THREE.Mesh(new THREE.ConeGeometry(0.75, 1.8, 3), new THREE.MeshLambertMaterial({ color: 0xfef3c7 }));
+      sail.position.set(0, 1.1, 0);
+      canalBoatMesh.add(hull, sail);
+      canalBoatMesh.position.set(-10.5, 0.25, -1.0);
+      scene.add(canalBoatMesh);
+
+      plotMeshes = [];
+      interactiveMeshes = [];
+      for (let i = 0; i < 20; i++) {
+        const pos = getPlotPosition(i);
+        const group = new THREE.Group();
+        group.position.set(pos.x, 0, pos.z);
+
+        const baseMat = new THREE.MeshLambertMaterial({ color: 0x78350f });
+        const baseMesh = new THREE.Mesh(new THREE.BoxGeometry(2.05, 0.22, 1.95), baseMat);
+        baseMesh.position.y = 0.11;
+        baseMesh.receiveShadow = true;
+        baseMesh.castShadow = true;
+        baseMesh.userData = { pickType: 'plot', id: i };
+        group.add(baseMesh);
+        interactiveMeshes.push(baseMesh);
+
+        const ringGeo = new THREE.RingGeometry(1.08, 1.24, 4);
+        ringGeo.rotateX(-Math.PI / 2);
+        ringGeo.rotateY(Math.PI / 4);
+        const ringMat = new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, visible: false });
+        const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+        ringMesh.position.y = 0.24;
+        group.add(ringMesh);
+
+        const cropGroup = new THREE.Group();
+        cropGroup.position.y = 0.22;
+        group.add(cropGroup);
+
+        scene.add(group);
+        plotMeshes.push({ group, baseMesh, ringMesh, cropGroup });
+      }
+
+      LANDMARKS_3D.forEach(lm => {
+        const bGroup = new THREE.Group();
+        bGroup.position.set(lm.x, 0, lm.z);
+
+        const bodyMat = new THREE.MeshLambertMaterial({ color: new THREE.Color(lm.color) });
+        const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(lm.w, lm.h, lm.d), bodyMat);
+        bodyMesh.position.y = lm.h / 2;
+        bodyMesh.castShadow = true;
+        bodyMesh.receiveShadow = true;
+        bodyMesh.userData = { pickType: 'landmark', id: lm.id, lm };
+        bGroup.add(bodyMesh);
+        interactiveMeshes.push(bodyMesh);
+
+        if (lm.id === 'granary' || lm.id === 'pigeon_tower') {
+          const dome = new THREE.Mesh(new THREE.ConeGeometry(lm.w * 0.55, 1.5, 12), new THREE.MeshLambertMaterial({ color: 0xb45309 }));
+          dome.position.y = lm.h + 0.75;
+          bGroup.add(dome);
+        } else if (lm.id === 'oven') {
+          const dome = new THREE.Mesh(new THREE.SphereGeometry(lm.w * 0.48, 12, 10), new THREE.MeshLambertMaterial({ color: 0x9a3412 }));
+          dome.position.y = lm.h;
+          bGroup.add(dome);
+        } else if (lm.id === 'mill') {
+          millBladesMesh = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 0.2), new THREE.MeshLambertMaterial({ color: 0xfef3c7 }));
+          millBladesMesh.position.set(0, lm.h - 0.4, lm.d / 2 + 0.15);
+          bGroup.add(millBladesMesh);
+        } else if (lm.id === 'canal_saqia') {
+          saqiaWheelMesh = new THREE.Mesh(new THREE.CylinderGeometry(1.35, 1.35, 0.35, 12), new THREE.MeshLambertMaterial({ color: 0x78350f }));
+          saqiaWheelMesh.rotation.z = Math.PI / 2;
+          saqiaWheelMesh.position.set(0, 1.6, 0);
+          bGroup.add(saqiaWheelMesh);
+        } else if (lm.id === 'souq_market') {
+          const awning = new THREE.Mesh(new THREE.BoxGeometry(lm.w + 0.4, 0.25, lm.d + 0.4), new THREE.MeshLambertMaterial({ color: 0xdc2626 }));
+          awning.position.y = lm.h + 0.15;
+          bGroup.add(awning);
+        }
+
+        scene.add(bGroup);
+      });
+
+      GAME_DATA.animals.forEach((a, idx) => {
+        const aGroup = new THREE.Group();
+        const ax = 6.4 + (idx % 3) * 1.3;
+        const az = -4.2 + Math.floor(idx / 3) * 1.4;
+        aGroup.position.set(ax, 0.2, az);
+        const colors = [0x374151, 0xfef3c7, 0xd97706, 0xffffff, 0x10b981];
+        const body = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.6, 0.95), new THREE.MeshLambertMaterial({ color: colors[idx] }));
+        body.position.y = 0.35;
+        body.castShadow = true;
+        body.userData = { pickType: 'landmark', id: 'animal_barn', lm: LANDMARKS_3D.find(l => l.id === 'animal_barn') };
+        aGroup.add(body);
+        interactiveMeshes.push(body);
+        scene.add(aGroup);
+        animal3DGroups[a.id] = aGroup;
+      });
+
+      NPCS_3D.forEach(npc => {
+        const nGroup = new THREE.Group();
+        nGroup.position.set(npc.x, 0, npc.z);
+        const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.44, 1.15, 10), new THREE.MeshLambertMaterial({ color: new THREE.Color(npc.color) }));
+        robe.position.y = 0.58;
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 10, 10), new THREE.MeshLambertMaterial({ color: 0xfdba74 }));
+        head.position.y = 1.35;
+        robe.userData = { pickType: 'npc', id: npc.id, npc };
+        head.userData = { pickType: 'npc', id: npc.id, npc };
+        nGroup.add(robe, head);
+        interactiveMeshes.push(robe, head);
+        scene.add(nGroup);
+      });
+
+      PALM_TREES_3D.forEach(pt => {
+        const tree = new THREE.Group();
+        tree.position.set(pt.x, 0, pt.z);
+        const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18 * pt.s, 0.28 * pt.s, 2.8 * pt.s, 7), new THREE.MeshLambertMaterial({ color: 0x78350f }));
+        trunk.position.y = 1.4 * pt.s;
+        trunk.castShadow = true;
+        const crown = new THREE.Mesh(new THREE.ConeGeometry(1.35 * pt.s, 1.2 * pt.s, 7), new THREE.MeshLambertMaterial({ color: 0x15803d }));
+        crown.position.y = 2.9 * pt.s;
+        crown.castShadow = true;
+        tree.add(trunk, crown);
+        scene.add(tree);
+      });
+
+      sync3DWorld();
+    }
+
+    function updateThreeCamera() {
+      if (!useThreeWebGL || !camera) return;
+      const aspect = window.innerWidth / window.innerHeight;
+      const d = 13.5 / cameraState.zoom;
+      camera.left = -d * aspect;
+      camera.right = d * aspect;
+      camera.top = d;
+      camera.bottom = -d;
+      camera.updateProjectionMatrix();
+
+      const dist = 28;
+      camera.position.set(
+        cameraState.targetX + Math.cos(cameraState.yawAngle) * dist,
+        22,
+        cameraState.targetZ + Math.sin(cameraState.yawAngle) * dist
+      );
+      camera.lookAt(cameraState.targetX, 0, cameraState.targetZ);
+    }
+
+    function sync3DWorld() {
+      if (!useThreeWebGL) return;
+      state.plots.forEach((p, idx) => {
+        const pm = plotMeshes[idx];
+        if (!pm) return;
+        if (!p.unlocked) {
+          pm.baseMesh.material.color.setHex(0x84a98c);
+        } else if (p.watered) {
+          pm.baseMesh.material.color.setHex(0x3d2314);
+        } else {
+          pm.baseMesh.material.color.setHex(0x7f4f24);
+        }
+
+        pm.ringMesh.material.visible = (state.selectedObject && state.selectedObject.type === 'plot' && state.selectedObject.id === idx);
+
+        while (pm.cropGroup.children.length > 0) {
+          pm.cropGroup.remove(pm.cropGroup.children[0]);
+        }
+        if (p.unlocked && p.cropId) {
+          const crop = GAME_DATA.crops.find(c => c.id === p.cropId);
+          if (crop) {
+            const ratio = Math.min(1, p.elapsedSec / crop.growTimeSec);
+            const stage = ratio >= 1 ? 3 : (ratio >= 0.5 ? 2 : 1);
+            const h = stage === 1 ? 0.35 : (stage === 2 ? 0.75 : 1.15);
+            const stalkColor = stage === 3 ? crop.colorHex : 0x4ade80;
+
+            for (let sx = -0.5; sx <= 0.5; sx += 0.5) {
+              for (let sz = -0.5; sz <= 0.5; sz += 0.5) {
+                const stalk = new THREE.Mesh(
+                  new THREE.BoxGeometry(0.24, h, 0.24),
+                  new THREE.MeshLambertMaterial({ color: stalkColor })
+                );
+                stalk.position.set(sx, h / 2, sz);
+                pm.cropGroup.add(stalk);
+
+                if (stage === 3) {
+                  const fruit = new THREE.Mesh(
+                    new THREE.SphereGeometry(0.18, 6, 6),
+                    new THREE.MeshLambertMaterial({ color: crop.fruitColorHex })
+                  );
+                  fruit.position.set(sx, h + 0.12, sz);
+                  pm.cropGroup.add(fruit);
+                }
+              }
+            }
+          }
+        }
+      });
+
+      GAME_DATA.animals.forEach(a => {
+        if (animal3DGroups[a.id]) {
+          animal3DGroups[a.id].visible = Boolean(state.animals[a.id] && state.animals[a.id].owned);
+        }
+      });
+    }
+
+    let screenHitBoxes = [];
+
+    function projectIso3D(wx, wy, wz, width, height) {
+      const dx = wx - cameraState.targetX;
+      const dz = wz - cameraState.targetZ;
+      const cosA = Math.cos(cameraState.yawAngle - Math.PI / 4);
+      const sinA = Math.sin(cameraState.yawAngle - Math.PI / 4);
+      const rx = dx * cosA - dz * sinA;
+      const rz = dx * sinA + dz * cosA;
+
+      const scale = 32 * cameraState.zoom;
+      const sx = width * 0.5 + (rx - rz) * scale;
+      const sy = height * 0.52 + (rx + rz) * scale * 0.52 - wy * scale * 0.85;
+      return { x: sx, y: sy, depth: rx + rz, scale };
+    }
+
+    function drawIsoPrism(ctx, wx, wy, wz, w, h, d, topColor, leftColor, rightColor, width, height) {
+      const hw = w / 2;
+      const hd = d / 2;
+      const p000 = projectIso3D(wx - hw, wy, wz - hd, width, height);
+      const p100 = projectIso3D(wx + hw, wy, wz - hd, width, height);
+      const p101 = projectIso3D(wx + hw, wy, wz + hd, width, height);
+      const p001 = projectIso3D(wx - hw, wy, wz + hd, width, height);
+
+      const p010 = projectIso3D(wx - hw, wy + h, wz - hd, width, height);
+      const p110 = projectIso3D(wx + hw, wy + h, wz - hd, width, height);
+      const p111 = projectIso3D(wx + hw, wy + h, wz + hd, width, height);
+      const p011 = projectIso3D(wx - hw, wy + h, wz + hd, width, height);
+
+      ctx.fillStyle = leftColor;
+      ctx.beginPath();
+      ctx.moveTo(p011.x, p011.y);
+      ctx.lineTo(p111.x, p111.y);
+      ctx.lineTo(p101.x, p101.y);
+      ctx.lineTo(p001.x, p001.y);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = rightColor;
+      ctx.beginPath();
+      ctx.moveTo(p111.x, p111.y);
+      ctx.lineTo(p110.x, p110.y);
+      ctx.lineTo(p100.x, p100.y);
+      ctx.lineTo(p101.x, p101.y);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = topColor;
+      ctx.beginPath();
+      ctx.moveTo(p010.x, p010.y);
+      ctx.lineTo(p110.x, p110.y);
+      ctx.lineTo(p111.x, p111.y);
+      ctx.lineTo(p011.x, p011.y);
+      ctx.closePath();
+      ctx.fill();
+
+      return p111;
+    }
+
+    function renderFallbackIsoScene(canvas, timeSec) {
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const w = canvas.width;
+      const h = canvas.height;
+
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+      if (state.dayMode === 'golden') {
+        skyGrad.addColorStop(0, '#fed7aa');
+        skyGrad.addColorStop(1, '#fde68a');
+      } else if (state.dayMode === 'night') {
+        skyGrad.addColorStop(0, '#0f172a');
+        skyGrad.addColorStop(1, '#1e293b');
+      } else {
+        skyGrad.addColorStop(0, '#bae6fd');
+        skyGrad.addColorStop(1, '#dcfce7');
+      }
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, w, h);
+
+      drawIsoPrism(ctx, -0.5, -0.8, 0.5, 29, 0.8, 24,
+        state.dayMode === 'night' ? '#14532d' : (state.dayMode === 'golden' ? '#65a30d' : '#84cc16'),
+        '#4d7c0f', '#3f6212', w, h);
+
+      drawIsoPrism(ctx, 3.2, 0.0, 0.8, 2.8, 0.06, 20, '#e6ccb2', '#d4a373', '#b08968', w, h);
+      drawIsoPrism(ctx, -1.0, 0.0, -3.2, 18, 0.06, 2.2, '#e6ccb2', '#d4a373', '#b08968', w, h);
+
+      drawIsoPrism(ctx, -10.5, -0.1, 0.5, 3.0, 0.18, 24, '#0284c7', '#0369a1', '#075985', w, h);
+
+      const boatZ = Math.sin(timeSec * 0.7) * 3.5;
+      drawIsoPrism(ctx, -10.5, 0.12, boatZ, 1.0, 0.35, 2.0, '#92400e', '#78350f', '#451a03', w, h);
+      drawIsoPrism(ctx, -10.5, 0.45, boatZ, 0.2, 1.3, 0.9, '#fef3c7', '#fde68a', '#f59e0b', w, h);
+
+      drawIsoPrism(ctx, -10.5, 0.1, -3.2, 3.6, 0.3, 1.9, '#b45309', '#92400e', '#78350f', w, h);
+      drawIsoPrism(ctx, -10.5, 0.1, 4.5, 3.6, 0.3, 1.9, '#b45309', '#92400e', '#78350f', w, h);
+
+      const drawables = [];
+      screenHitBoxes = [];
+
+      state.plots.forEach((p, idx) => {
+        const pos = getPlotPosition(idx);
+        const proj = projectIso3D(pos.x, 0.15, pos.z, w, h);
+        drawables.push({
+          depth: proj.depth,
+          draw: () => {
+            const isSelected = state.selectedObject && state.selectedObject.type === 'plot' && state.selectedObject.id === idx;
+            const topCol = !p.unlocked ? '#a3b18a' : (p.watered ? '#4a2c11' : '#8c5a32');
+            const leftCol = !p.unlocked ? '#588157' : '#3b220c';
+            const rightCol = !p.unlocked ? '#3a5a40' : '#291707';
+
+            drawIsoPrism(ctx, pos.x, 0, pos.z, 1.95, 0.22, 1.85, topCol, leftCol, rightCol, w, h);
+
+            if (isSelected) {
+              ctx.strokeStyle = '#facc15';
+              ctx.lineWidth = 3;
+              ctx.beginPath();
+              ctx.arc(proj.x, proj.y, proj.scale * 0.95, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+
+            screenHitBoxes.push({
+              type: 'plot',
+              id: idx,
+              x: proj.x,
+              y: proj.y,
+              r: proj.scale * 0.95,
+              depth: proj.depth + 10
+            });
+
+            if (!p.unlocked) {
+              ctx.font = `bold ${Math.max(11, Math.round(proj.scale * 0.42))}px Cairo`;
+              ctx.textAlign = 'center';
+              ctx.fillStyle = '#fef3c7';
+              ctx.fillText('🔒', proj.x, proj.y + 4);
+            } else if (p.cropId) {
+              const crop = GAME_DATA.crops.find(c => c.id === p.cropId);
+              if (crop) {
+                const ratio = Math.min(1, p.elapsedSec / crop.growTimeSec);
+                const stage = ratio >= 1 ? 3 : (ratio >= 0.5 ? 2 : 1);
+                const ch = stage === 1 ? 0.3 : (stage === 2 ? 0.65 : 1.05);
+                const cTop = stage === 3 ? '#facc15' : (stage === 2 ? '#22c55e' : '#86efac');
+                drawIsoPrism(ctx, pos.x, 0.22, pos.z, 1.1, ch, 1.1, cTop, '#15803d', '#166534', w, h);
+
+                const topPt = projectIso3D(pos.x, 0.22 + ch + 0.3, pos.z, w, h);
+                ctx.font = `bold ${Math.max(12, Math.round(proj.scale * 0.52))}px Cairo`;
+                ctx.textAlign = 'center';
+                ctx.fillText(crop.icon, topPt.x, topPt.y);
+
+                if (ratio >= 1) {
+                  const bounce = Math.sin(timeSec * 5 + idx) * 4;
+                  ctx.fillStyle = '#fef08a';
+                  ctx.font = `bold ${Math.max(10, Math.round(proj.scale * 0.34))}px Cairo`;
+                  ctx.fillText('★ جاهز', topPt.x, topPt.y - 16 + bounce);
+                } else {
+                  const bw = proj.scale * 1.1;
+                  const bh = 5;
+                  ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                  ctx.fillRect(topPt.x - bw / 2, topPt.y + 4, bw, bh);
+                  ctx.fillStyle = p.watered ? '#38bdf8' : '#4ade80';
+                  ctx.fillRect(topPt.x - bw / 2, topPt.y + 4, bw * ratio, bh);
+                }
+              }
+            }
+          }
+        });
+      });
+
+      LANDMARKS_3D.forEach(lm => {
+        const proj = projectIso3D(lm.x, lm.h * 0.5, lm.z, w, h);
+        drawables.push({
+          depth: proj.depth,
+          draw: () => {
+            drawIsoPrism(ctx, lm.x, 0, lm.z, lm.w, lm.h, lm.d, lm.color, '#78350f', '#451a03', w, h);
+            const roofPt = projectIso3D(lm.x, lm.h + 0.55, lm.z, w, h);
+
+            ctx.font = `bold ${Math.max(11, Math.round(proj.scale * 0.36))}px Cairo`;
+            ctx.textAlign = 'center';
+            const labelText = `${lm.icon} ${lm.name}`;
+            const tw = ctx.measureText(labelText).width + 12;
+            ctx.fillStyle = 'rgba(43, 29, 14, 0.82)';
+            ctx.beginPath();
+            if (ctx.roundRect) {
+              ctx.roundRect(roofPt.x - tw / 2, roofPt.y - 18, tw, 22, 8);
+            } else {
+              ctx.rect(roofPt.x - tw / 2, roofPt.y - 18, tw, 22);
+            }
+            ctx.fill();
+            ctx.fillStyle = '#fef3c7';
+            ctx.fillText(labelText, roofPt.x, roofPt.y - 3);
+
+            screenHitBoxes.push({
+              type: 'landmark',
+              id: lm.id,
+              lm,
+              x: proj.x,
+              y: proj.y,
+              r: proj.scale * 1.45,
+              depth: proj.depth + 20
+            });
+          }
+        });
+      });
+
+      NPCS_3D.forEach(npc => {
+        const proj = projectIso3D(npc.x, 0.7, npc.z, w, h);
+        drawables.push({
+          depth: proj.depth,
+          draw: () => {
+            drawIsoPrism(ctx, npc.x, 0, npc.z, 0.75, 1.35, 0.75, npc.color, '#1e3a8a', '#172554', w, h);
+            const headPt = projectIso3D(npc.x, 1.65, npc.z, w, h);
+            ctx.font = 'bold 12px Cairo';
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#ffffff';
+            ctx.fillText(`👤 ${npc.name}`, headPt.x, headPt.y - 4);
+
+            screenHitBoxes.push({
+              type: 'npc',
+              id: npc.id,
+              npc,
+              x: proj.x,
+              y: proj.y,
+              r: proj.scale * 0.9,
+              depth: proj.depth + 30
+            });
+          }
+        });
+      });
+
+      PALM_TREES_3D.forEach(pt => {
+        const proj = projectIso3D(pt.x, 1.2, pt.z, w, h);
+        drawables.push({
+          depth: proj.depth,
+          draw: () => {
+            drawIsoPrism(ctx, pt.x, 0, pt.z, 0.4, 2.3 * pt.s, 0.4, '#78350f', '#5c3a21', '#3b220c', w, h);
+            drawIsoPrism(ctx, pt.x, 2.2 * pt.s, pt.z, 1.6 * pt.s, 0.7 * pt.s, 1.6 * pt.s, '#16a34a', '#15803d', '#166534', w, h);
+          }
+        });
+      });
+
+      drawables.sort((a, b) => a.depth - b.depth);
+      drawables.forEach(d => d.draw());
+    }
+
+    let lastFrameTime = performance.now();
+    function gameLoop(nowMs) {
+      const dt = Math.min(0.25, Math.max(0.001, (nowMs - lastFrameTime) / 1000));
+      lastFrameTime = nowMs;
+      const timeSec = nowMs / 1000;
+
+      cameraState.yawAngle += (cameraState.targetYawAngle - cameraState.yawAngle) * 0.14;
+      advanceTimers(dt, false);
+
+      const canvas = document.getElementById('game-canvas');
+      if (useThreeWebGL && renderer && scene && camera) {
+        updateThreeCamera();
+        if (saqiaWheelMesh) saqiaWheelMesh.rotation.x += dt * 1.1;
+        if (millBladesMesh) millBladesMesh.rotation.z += dt * 1.4;
+        if (canalBoatMesh) canalBoatMesh.position.z = Math.sin(timeSec * 0.65) * 4.0;
+        renderer.render(scene, camera);
+      } else if (canvas) {
+        renderFallbackIsoScene(canvas, timeSec);
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function setupViewportInput(canvas) {
+      if (!canvas) return;
+      onViewportResize();
+
+      canvas.onpointerdown = e => {
+        cameraState.isDragging = true;
+        cameraState.dragStartX = e.clientX;
+        cameraState.dragStartY = e.clientY;
+        cameraState.pointerMoved = false;
+      };
+
+      window.onpointermove = e => {
+        if (!cameraState.isDragging) return;
+        const dx = e.clientX - cameraState.dragStartX;
+        const dy = e.clientY - cameraState.dragStartY;
+        if (Math.hypot(dx, dy) > 6) {
+          cameraState.pointerMoved = true;
+          cameraState.dragStartX = e.clientX;
+          cameraState.dragStartY = e.clientY;
+
+          const panSpeed = 0.022 / cameraState.zoom;
+          const cosA = Math.cos(cameraState.yawAngle - Math.PI / 4);
+          const sinA = Math.sin(cameraState.yawAngle - Math.PI / 4);
+          const worldDx = (-dx * 0.7 - dy) * panSpeed;
+          const worldDz = (dx * 0.7 - dy) * panSpeed;
+
+          cameraState.targetX = Math.max(-13, Math.min(13, cameraState.targetX + worldDx * cosA + worldDz * sinA));
+          cameraState.targetZ = Math.max(-11, Math.min(11, cameraState.targetZ - worldDx * sinA + worldDz * cosA));
+
+          if (state.stats.cameraMoves < 5) {
+            state.stats.cameraMoves += 1;
+            updateHUD();
+          }
+        }
+      };
+
+      window.onpointerup = e => {
+        if (!cameraState.isDragging) return;
+        const wasMoved = cameraState.pointerMoved;
+        cameraState.isDragging = false;
+        const currentCanvas = document.getElementById('game-canvas');
+        if (!wasMoved && e.target === currentCanvas) {
+          handleCanvasClick(e.clientX, e.clientY);
+        }
+      };
+
+      canvas.onwheel = e => {
+        e.preventDefault();
+        const zoomDelta = e.deltaY < 0 ? 0.12 : -0.12;
+        cameraState.zoom = Math.max(0.65, Math.min(1.85, cameraState.zoom + zoomDelta));
+        state.stats.cameraMoves += 1;
+        updateHUD();
+      };
+    }
+
+    function onViewportResize() {
+      const canvas = document.getElementById('game-canvas');
+      if (!canvas) return;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      if (useThreeWebGL && renderer) {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        updateThreeCamera();
+      }
+    }
+
+    function handleCanvasClick(clientX, clientY) {
+      if (useThreeWebGL && camera) {
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2(
+          (clientX / window.innerWidth) * 2 - 1,
+          -(clientY / window.innerHeight) * 2 + 1
+        );
+        raycaster.setFromCamera(mouse, camera);
+        const hits = raycaster.intersectObjects(interactiveMeshes, false);
+        if (hits.length > 0) {
+          const data = hits[0].object.userData;
+          on3DObjectPicked(data);
+          return;
+        }
+      } else {
+        const candidates = screenHitBoxes.filter(hb => Math.hypot(clientX - hb.x, clientY - hb.y) <= hb.r);
+        if (candidates.length > 0) {
+          candidates.sort((a, b) => b.depth - a.depth);
+          const top = candidates[0];
+          on3DObjectPicked({ pickType: top.type, id: top.id, lm: top.lm, npc: top.npc });
+          return;
+        }
+      }
+    }
+
+    function on3DObjectPicked(data) {
+      if (!data) return;
+      if (data.pickType === 'plot') {
+        const plotId = data.id;
+        state.selectedObject = { type: 'plot', id: plotId };
+        const plot = state.plots[plotId];
+
+        if (state.selectedTool === 'water') {
+          waterPlot(plotId);
+        } else if (state.selectedTool === 'harvest') {
+          harvestPlot(plotId);
+        } else {
+          if (isPlotReady(plot)) {
+            harvestPlot(plotId);
+          } else if (plot.unlocked && !plot.cropId) {
+            plantPlot(plotId, state.selectedSeed);
+          } else {
+            sync3DWorld();
+            renderInspector();
+          }
+        }
+      } else if (data.pickType === 'landmark') {
+        state.selectedObject = { type: 'landmark', id: data.id, lm: data.lm };
+        renderInspector();
+        if (data.lm && data.lm.modal) {
+          openModal(data.lm.modal);
+        }
+      } else if (data.pickType === 'npc') {
+        state.selectedObject = { type: 'npc', id: data.id, npc: data.npc };
+        renderInspector();
+        const prof = NPC_PROFILES[data.id];
+        if (prof) {
+          showToast(`🗣️ ${prof.name}: "${prof.greeting}"`, 'info');
+        }
+      }
+    }
+
+    let activeModalName = null;
+
+    function updateHUD() {
+      document.getElementById('hud-level').textContent = state.level;
+      const reqXp = getXpRequired(state.level);
+      const pct = Math.min(100, Math.round((state.xp / reqXp) * 100));
+      document.getElementById('hud-xp-bar').style.width = `${pct}%`;
+      document.getElementById('hud-xp-text').textContent = `${state.xp} / ${reqXp} خبرة`;
+
+      document.getElementById('hud-coins').textContent = state.coins;
+      document.getElementById('hud-storage-used').textContent = getStorageUsed();
+      document.getElementById('hud-storage-max').textContent = getStorageMax();
+      document.getElementById('hud-plots-unlocked').textContent = state.plots.filter(p => p.unlocked).length;
+
+      const curSeason = SEASONS[state.seasonIndex || 0] || SEASONS[0];
+      const seasonBadge = document.getElementById('season-badge');
+      if (seasonBadge) seasonBadge.textContent = curSeason.name;
+
+      const barnReady = GAME_DATA.animals.some(a => {
+        const st = state.animals[a.id];
+        return st && st.owned && st.feeding && st.elapsedSec >= a.prodTimeSec;
+      });
+      document.getElementById('badge-barn-ready').classList.toggle('hidden', !barnReady);
+
+      const craftReady = GAME_DATA.facilities.some(f => {
+        const st = state.facilities[f.id];
+        if (!st || !st.activeRecipeId) return false;
+        const rec = f.recipes.find(r => r.id === st.activeRecipeId);
+        return rec && st.elapsedSec >= rec.timeSec;
+      });
+      document.getElementById('badge-craft-ready').classList.toggle('hidden', !craftReady);
+
+      const orderReady = state.orders.some(ord => hasIngredients(ord.items));
+      document.getElementById('badge-orders-ready').classList.toggle('hidden', !orderReady);
+
+      const questReady = QUEST_LIST.some(q => !state.completedQuests.includes(q.id) && getDynamicStat(q.stat) >= q.target);
+      document.getElementById('badge-quests-ready').classList.toggle('hidden', !questReady);
+
+      renderActiveQuestTracker();
+    }
+
+    function populateQuickSeedSelect() {
+      const sel = document.getElementById('quick-seed-select');
+      if (!sel) return;
+      sel.innerHTML = GAME_DATA.crops.map(c => {
+        const locked = state.level < c.unlockLevel;
+        return `<option value="${c.id}" ${c.id === state.selectedSeed ? 'selected' : ''} ${locked ? 'disabled' : ''}>
+          ${c.icon} ${c.name} (${c.seedCost} ج.م)${locked ? ` [مستوى ${c.unlockLevel}]` : ''}
+        </option>`;
+      }).join('');
+    }
+
+    function renderActiveQuestTracker() {
+      const box = document.getElementById('active-quest-box');
+      const countEl = document.getElementById('tracker-quest-progress-count');
+      if (!box) return;
+
+      const completedCount = state.completedQuests.length;
+      if (countEl) countEl.textContent = `${completedCount} / ${QUEST_LIST.length}`;
+
+      const nextQuest = QUEST_LIST.find(q => !state.completedQuests.includes(q.id));
+      if (!nextQuest) {
+        box.innerHTML = `<div class="text-emerald-800 font-extrabold text-center py-1">🏆 أتممت جميع الـ 30 مهمة بنجاح!</div>`;
+        return;
+      }
+
+      const cur = Math.min(nextQuest.target, getDynamicStat(nextQuest.stat));
+      const ready = cur >= nextQuest.target;
+      const npc = NPC_PROFILES[nextQuest.npc];
+
+      box.innerHTML = `
+        <div class="flex items-center gap-2 mb-1">
+          <img src="${npc.avatarSrc}" alt="${npc.name}" class="w-8 h-8 rounded-full object-cover border border-amber-500" />
+          <div class="flex-1 min-w-0">
+            <div class="font-extrabold text-amber-950 truncate">${nextQuest.title}</div>
+            <div class="text-[10px] text-amber-700">${npc.name} • +${nextQuest.rewardCoins} ج.م</div>
+          </div>
+        </div>
+        <p class="text-[11px] text-stone-700 leading-snug mb-1.5">${nextQuest.desc}</p>
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex-1 bg-amber-950/10 h-2 rounded-full overflow-hidden">
+            <div class="bg-emerald-600 h-full transition-all" style="width:${Math.round((cur / nextQuest.target) * 100)}%"></div>
+          </div>
+          <span class="text-[10px] font-black text-amber-900">${cur}/${nextQuest.target}</span>
+        </div>
+        ${ready ? `<button type="button" onclick="claimQuestReward(${nextQuest.id})" class="mt-2 w-full py-1 rounded-lg btn-gold text-xs font-black">🎁 استلام المكافأة (+${nextQuest.rewardCoins} ج.م)</button>` : ''}
+      `;
+    }
+
+    function claimQuestReward(questId) {
+      const q = QUEST_LIST.find(x => x.id === questId);
+      if (!q || state.completedQuests.includes(questId)) return;
+      if (getDynamicStat(q.stat) < q.target) return;
+
+      state.completedQuests.push(questId);
+      playSound('levelup');
+      addXpAndCoins(q.rewardCoins, q.rewardXp, `🎁 مكافأة مهمة: +${q.rewardCoins} ج.م`);
+      showToast(`🌟 أحسنت! أكملت مهمة "${q.title}" واستلمت ${q.rewardCoins} ج.م و ${q.rewardXp} خبرة!`, 'success');
+      populateQuickSeedSelect();
+      updateHUD();
+      refreshActiveModal();
+    }
+    window.claimQuestReward = claimQuestReward;
+
+    function renderInspector() {
+      const iconEl = document.getElementById('inspector-icon');
+      const titleEl = document.getElementById('inspector-title');
+      const subEl = document.getElementById('inspector-subtitle');
+      const bodyEl = document.getElementById('inspector-body');
+      if (!bodyEl) return;
+
+      const sel = state.selectedObject || { type: 'plot', id: 0 };
+
+      if (sel.type === 'plot') {
+        const plot = state.plots[sel.id] || state.plots[0];
+        iconEl.textContent = plot.cropId ? (ITEM_CATALOG[plot.cropId]?.icon || '🌱') : '🌾';
+        titleEl.textContent = `قطعة أرض زراعية #${plot.id + 1}`;
+        subEl.textContent = !plot.unlocked ? 'أرض غير مستصلحة' : (plot.watered ? 'مروية بطمي النيل 💧' : 'أرض جاهزة للزراعة');
+
+        if (!plot.unlocked) {
+          bodyEl.innerHTML = `
+            <p class="text-stone-600">هذه القطعة تحتاج إلى استصلاح وتوسعة من قسم التطوير مع المهندس حسن.</p>
+            <button type="button" onclick="openModal('upgrades')" class="w-full py-1.5 rounded-xl btn-earth font-extrabold">🛠️ فتح التطوير والتوسعة</button>
+          `;
+        } else if (!plot.cropId) {
+          const seedMeta = GAME_DATA.crops.find(c => c.id === state.selectedSeed) || GAME_DATA.crops[0];
+          bodyEl.innerHTML = `
+            <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-2">
+              <div class="font-bold text-emerald-950">البذرة المختارة: ${seedMeta.icon} ${seedMeta.name}</div>
+              <div class="text-[11px] text-emerald-800">التكلفة: ${seedMeta.seedCost} ج.م • النمو: ${seedMeta.growTimeSec}ث • البيع: ${getItemEffectivePrice(seedMeta.id)} ج.م</div>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5">
+              <button type="button" onclick="plantPlot(${plot.id}, state.selectedSeed)" class="py-1.5 rounded-xl btn-primary font-extrabold">🌱 ازرع الآن</button>
+              <button type="button" onclick="openModal('seeds')" class="py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 border border-amber-300 font-extrabold text-amber-950">🌾 قائمة البذور</button>
+            </div>
+          `;
+        } else {
+          const crop = GAME_DATA.crops.find(c => c.id === plot.cropId);
+          const ratio = Math.min(1, plot.elapsedSec / crop.growTimeSec);
+          const pct = Math.round(ratio * 100);
+          const ready = ratio >= 1;
+          bodyEl.innerHTML = `
+            <div class="bg-amber-50 border border-amber-200 rounded-xl p-2 space-y-1">
+              <div class="flex justify-between font-extrabold text-amber-950">
+                <span>${crop.icon} ${crop.name}</span>
+                <span>${pct}%</span>
+              </div>
+              <div class="w-full bg-amber-900/15 h-2.5 rounded-full overflow-hidden">
+                <div class="bg-emerald-600 h-full transition-all" style="width:${pct}%"></div>
+              </div>
+              <div class="text-[11px] text-stone-600">${ready ? '✨ المحصول ناضج وجاهز للحصاد!' : `الوقت المتبقي: ~${Math.ceil(crop.growTimeSec - plot.elapsedSec)} ثانية`}</div>
+            </div>
+            <div class="flex gap-1.5">
+              ${ready
+                ? `<button type="button" onclick="harvestPlot(${plot.id})" class="flex-1 py-1.5 rounded-xl btn-gold font-extrabold">🌾 احصد المحصول</button>`
+                : (!plot.watered
+                    ? `<button type="button" onclick="waterPlot(${plot.id})" class="flex-1 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-extrabold">💧 اروِ من الترعة</button>`
+                    : `<span class="flex-1 py-1 text-center text-sky-800 font-bold bg-sky-50 rounded-xl border border-sky-200">💧 مروية بالساقية</span>`
+                  )
+              }
+            </div>
+          `;
+        }
+      } else if (sel.type === 'landmark' && sel.lm) {
+        const lm = sel.lm;
+        iconEl.textContent = lm.icon;
+        titleEl.textContent = lm.name;
+        subEl.textContent = lm.subtitle;
+        bodyEl.innerHTML = `
+          <p class="text-stone-700">${lm.subtitle}</p>
+          ${lm.modal ? `<button type="button" onclick="openModal('${lm.modal}')" class="w-full py-1.5 rounded-xl btn-primary font-extrabold">فتح ${lm.name}</button>` : `
+            <button type="button" onclick="waterAllPlantedPlots()" class="w-full py-1.5 rounded-xl bg-sky-600 text-white font-extrabold">🌊 تشغيل الساقية لريّ الحقول</button>
+          `}
+        `;
+      } else if (sel.type === 'npc' && sel.npc) {
+        const prof = NPC_PROFILES[sel.id];
+        iconEl.textContent = '🗣️';
+        titleEl.textContent = prof.name;
+        subEl.textContent = prof.role;
+        bodyEl.innerHTML = `
+          <div class="flex items-center gap-2 bg-amber-50 p-2 rounded-xl border border-amber-200">
+            <img src="${prof.avatarSrc}" alt="${prof.name}" class="w-11 h-11 rounded-full object-cover border border-amber-500" />
+            <p class="text-[11px] text-amber-950 font-semibold leading-snug">"${prof.greeting}"</p>
+          </div>
+          <button type="button" onclick="openModal('${sel.npc.modal}')" class="w-full py-1.5 rounded-xl btn-gold font-extrabold">التفاعل مع ${prof.name}</button>
+        `;
+      }
+    }
+
+    function downloadStandaloneHTML() {
+      const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'index.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      playSound('levelup');
+      showToast('📥 تم تحميل ملف اللعبة (index.html) بنجاح على جهازك!', 'success');
+    }
+    window.downloadStandaloneHTML = downloadStandaloneHTML;
+
+    function openModal(modalName) {
+      activeModalName = modalName;
+      const backdrop = document.getElementById('modal-backdrop');
+      if (!backdrop) return;
+      backdrop.classList.remove('hidden');
+
+      document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+        btn.classList.toggle('nav-tab-active', btn.dataset.modal === modalName);
+      });
+
+      refreshActiveModal();
+    }
+    window.openModal = openModal;
+
+    function closeModal() {
+      activeModalName = null;
+      const backdrop = document.getElementById('modal-backdrop');
+      if (backdrop) backdrop.classList.add('hidden');
+      document.querySelectorAll('.bottom-nav-btn').forEach(btn => btn.classList.remove('nav-tab-active'));
+    }
+
+    function refreshActiveModal() {
+      if (!activeModalName) return;
+      const iconEl = document.getElementById('modal-header-icon');
+      const titleEl = document.getElementById('modal-header-title');
+      const subEl = document.getElementById('modal-header-subtitle');
+      const body = document.getElementById('modal-content-body');
+      if (!body) return;
+
+      if (activeModalName === 'seeds') {
+        iconEl.textContent = '🌾';
+        titleEl.textContent = 'الأراضي الزراعية وقائمة البذور المصرية';
+        subEl.textContent = 'اختر البذرة المناسبة، أو ازرع واحصد الأراضي الـ 20 مباشرة';
+
+        const readyCount = state.plots.filter(p => isPlotReady(p)).length;
+        const emptyCount = state.plots.filter(p => p.unlocked && !p.cropId).length;
+
+        body.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
+            <div class="text-xs sm:text-sm font-bold text-emerald-950">
+              الأراضي المفتوحة: <span class="font-black">${state.plots.filter(p => p.unlocked).length}/20</span> •
+              الفارغة: <span class="font-black">${emptyCount}</span> •
+              الجاهزة للحصاد: <span class="font-black text-amber-700">${readyCount}</span>
+            </div>
+            <div class="flex gap-2">
+              <button type="button" onclick="plantAllEmptyPlots(); refreshActiveModal();" class="px-3 py-1.5 rounded-xl btn-primary text-xs font-extrabold">🚜 زراعة كل الفارغ</button>
+              <button type="button" onclick="waterAllPlantedPlots(); refreshActiveModal();" class="px-3 py-1.5 rounded-xl bg-sky-600 text-white text-xs font-extrabold">🌊 ريّ الكل</button>
+              <button type="button" onclick="harvestAllReadyPlots(); refreshActiveModal();" class="px-3 py-1.5 rounded-xl btn-gold text-xs font-extrabold">✨ حصاد الجاهز (${readyCount})</button>
+            </div>
+          </div>
+
+          <h3 class="font-black text-sm text-amber-950">1. اختر البذرة المصرية المعتمدة:</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            ${GAME_DATA.crops.map(c => {
+              const locked = state.level < c.unlockLevel;
+              const isSel = state.selectedSeed === c.id;
+              return `
+                <div class="cozy-card p-3 flex flex-col justify-between ${isSel ? 'ring-2 ring-emerald-600 bg-emerald-50/40' : ''}">
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-2xl">${c.icon}</span>
+                      <span class="text-xs font-black px-2 py-0.5 rounded-full ${locked ? 'bg-stone-200 text-stone-700' : 'bg-amber-100 text-amber-900'}">
+                        ${locked ? `🔒 مستوى ${c.unlockLevel}` : `${c.seedCost} ج.م`}
+                      </span>
+                    </div>
+                    <div class="font-extrabold text-sm text-amber-950">${c.name}</div>
+                    <p class="text-[11px] text-stone-600 my-1">${c.desc}</p>
+                  </div>
+                  <div class="mt-2 pt-2 border-t border-amber-900/10 flex items-center justify-between text-[11px] font-bold text-stone-700">
+                    <span>⏱️ ${c.growTimeSec}ث</span>
+                    <span>💰 بيع: ${getItemEffectivePrice(c.id)} ج.م</span>
+                    <span>⭐ +${c.xp} XP</span>
+                  </div>
+                  <button type="button" ${locked ? 'disabled' : ''} onclick="selectSeedAndPlant('${c.id}')" class="mt-2 w-full py-1.5 rounded-xl ${isSel ? 'btn-primary' : 'btn-gold'} text-xs font-extrabold">
+                    ${locked ? `يُفتح في مستوى ${c.unlockLevel}` : (isSel ? '✓ البذرة المختارة (ازرع قطعة)' : 'اختيار وزراعة')}
+                  </button>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } else if (activeModalName === 'barn') {
+        iconEl.textContent = '🐄';
+        titleEl.textContent = 'حظيرة المواشي والطيور البلدية (5 أنواع)';
+        subEl.textContent = 'اشترِ المواشي والطيور وأطعمها البرسيم أو الذرة لجمع الألبان والبيض الطازج';
+
+        body.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            ${GAME_DATA.animals.map(a => {
+              const st = state.animals[a.id];
+              const locked = state.level < a.unlockLevel;
+              const feedMeta = ITEM_CATALOG[a.feedItem];
+              const feedStock = state.inventory[a.feedItem] || 0;
+              const isReady = st.owned && st.feeding && st.elapsedSec >= a.prodTimeSec;
+              const pct = st.owned && st.feeding ? Math.min(100, Math.round((st.elapsedSec / a.prodTimeSec) * 100)) : 0;
+
+              return `
+                <div class="cozy-card p-3.5 flex flex-col justify-between">
+                  <div class="flex items-start gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 flex items-center justify-center text-3xl">${a.icon}</div>
+                    <div class="flex-1">
+                      <div class="flex items-center justify-between">
+                        <h4 class="font-extrabold text-sm text-amber-950">${a.name}</h4>
+                        <span class="text-xs font-bold px-2 py-0.5 rounded-full ${st.owned ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-900'}">
+                          ${st.owned ? '✓ في الحظيرة' : `${a.buyCost} ج.م`}
+                        </span>
+                      </div>
+                      <p class="text-[11px] text-stone-600 mt-0.5">${a.desc}</p>
+                      <div class="text-[11px] font-bold text-amber-900 mt-1">
+                        المنتج: ${a.productIcon} ${a.productName} (بيع: ${getItemEffectivePrice(a.productId)} ج.م) • الوقت: ${a.prodTimeSec}ث
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mt-3 pt-2.5 border-t border-amber-900/10">
+                    ${!st.owned ? `
+                      <button type="button" ${locked ? 'disabled' : ''} onclick="buyAnimal('${a.id}')" class="w-full py-2 rounded-xl btn-primary text-xs font-extrabold">
+                        ${locked ? `🔒 يتطلب المستوى ${a.unlockLevel}` : `🪙 شراء وضم للحظيرة (${a.buyCost} ج.م)`}
+                      </button>
+                    ` : isReady ? `
+                      <button type="button" onclick="collectAnimal('${a.id}')" class="w-full py-2 rounded-xl btn-gold text-xs font-extrabold">
+                        ✨ جمع ${a.productIcon} ${a.productName} (+${a.xp} خبرة)
+                      </button>
+                    ` : st.feeding ? `
+                      <div class="space-y-1">
+                        <div class="flex justify-between text-xs font-bold text-emerald-900">
+                          <span>جاري الإنتاج...</span>
+                          <span>${pct}%</span>
+                        </div>
+                        <div class="w-full bg-amber-900/15 h-2.5 rounded-full overflow-hidden">
+                          <div class="bg-emerald-600 h-full transition-all" style="width:${pct}%"></div>
+                        </div>
+                      </div>
+                    ` : `
+                      <div class="flex gap-2">
+                        <button type="button" onclick="feedAnimal('${a.id}', false)" class="flex-1 py-1.5 rounded-xl btn-primary text-xs font-extrabold">
+                          ${feedMeta.icon} إطعام من المخزن (${feedStock} متاح)
+                        </button>
+                        <button type="button" onclick="feedAnimal('${a.id}', true)" class="py-1.5 px-3 rounded-xl btn-earth text-xs font-extrabold" title="شراء علف فوري">
+                          🪙 علف فوري (${a.feedCostCoins} ج.م)
+                        </button>
+                      </div>
+                    `}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } else if (activeModalName === 'crafting') {
+        iconEl.textContent = '🥖';
+        titleEl.textContent = 'منشآت التصنيع الريفية الخمس والفرن البلدي';
+        subEl.textContent = 'حوّل محاصيل المزرعة ومنتجات الحظيرة إلى منتجات مصرية عالية القيمة';
+
+        body.innerHTML = `
+          <div class="space-y-3">
+            ${GAME_DATA.facilities.map(f => {
+              const st = state.facilities[f.id];
+              const activeRec = st.activeRecipeId ? f.recipes.find(r => r.id === st.activeRecipeId) : null;
+              const isReady = activeRec && st.elapsedSec >= activeRec.timeSec;
+              const pct = activeRec ? Math.min(100, Math.round((st.elapsedSec / activeRec.timeSec) * 100)) : 0;
+
+              return `
+                <div class="cozy-card p-4">
+                  <div class="flex flex-wrap items-center justify-between gap-2 border-b border-amber-900/10 pb-2 mb-3">
+                    <div class="flex items-center gap-2">
+                      <span class="text-2xl">${f.icon}</span>
+                      <div>
+                        <h4 class="font-extrabold text-sm text-amber-950">${f.name}</h4>
+                        <p class="text-[11px] text-stone-600">${f.desc}</p>
+                      </div>
+                    </div>
+                    ${activeRec ? (
+                      isReady
+                        ? `<button type="button" onclick="collectCraft('${f.id}')" class="px-4 py-1.5 rounded-xl btn-gold text-xs font-black">✨ استلام ${activeRec.name} الجاهز</button>`
+                        : `<div class="text-xs font-extrabold text-amber-900 bg-amber-100 px-3 py-1 rounded-xl">🔥 جاري تحضير ${activeRec.name} (${pct}%)</div>`
+                    ) : `<span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg">متاح للتشغيل</span>`}
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    ${f.recipes.map(r => {
+                      const canMake = hasIngredients(r.inputs) && !st.activeRecipeId;
+                      return `
+                        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-2.5 flex items-center justify-between gap-2">
+                          <div>
+                            <div class="font-extrabold text-xs sm:text-sm text-amber-950">${r.icon} ${r.name}</div>
+                            <div class="text-[11px] text-stone-700 mt-0.5">
+                              المكونات: ${r.inputs.map(inp => {
+                                const m = ITEM_CATALOG[inp.id];
+                                const have = state.inventory[inp.id] || 0;
+                                return `<span class="${have >= inp.count ? 'text-emerald-800 font-bold' : 'text-red-700 font-bold'}">${m.icon} ${m.name} (${have}/${inp.count})</span>`;
+                              }).join(' + ')}
+                            </div>
+                            <div class="text-[10px] font-bold text-amber-800 mt-0.5">💰 قيمة البيع: ${getItemEffectivePrice(r.id)} ج.م • ⭐ +${r.xp} XP</div>
+                          </div>
+                          <button type="button" ${!canMake ? 'disabled' : ''} onclick="startCraft('${f.id}', '${r.id}')" class="px-3 py-1.5 rounded-xl btn-primary text-xs font-extrabold whitespace-nowrap">
+                            تصنيع
+                          </button>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } else if (activeModalName === 'storage') {
+        iconEl.textContent = '🏺';
+        titleEl.textContent = 'الصومعة والمخزن الريفي';
+        subEl.textContent = `السعة الحالية: ${getStorageUsed()} / ${getStorageMax()} وحدة — بِع الفائض أو احتفظ به لطلبات السوق والتصنيع`;
+
+        const entries = Object.entries(state.inventory).filter(([, count]) => count > 0);
+        body.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-amber-100/80 border border-amber-300 p-3 rounded-2xl">
+            <div class="text-xs sm:text-sm font-extrabold text-amber-950">
+              🏺 إجمالي المخزون: ${getStorageUsed()} من ${getStorageMax()}
+            </div>
+            <div class="flex gap-2">
+              <button type="button" onclick="openModal('upgrades')" class="px-3 py-1.5 rounded-xl btn-earth text-xs font-extrabold">🛠️ توسيع سعة المخزن</button>
+            </div>
+          </div>
+
+          ${entries.length === 0 ? `
+            <div class="text-center py-10 text-stone-500 font-bold">المخزن فارغ حالياً. احصد المحاصيل من الغيط أو اجمع منتجات الحظيرة!</div>
+          ` : `
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              ${entries.map(([itemId, count]) => {
+                const meta = ITEM_CATALOG[itemId];
+                if (!meta) return '';
+                const unitPrice = getItemEffectivePrice(itemId);
+                return `
+                  <div class="cozy-card p-3 flex flex-col justify-between">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-2">
+                        <span class="text-2xl">${meta.icon}</span>
+                        <div>
+                          <div class="font-extrabold text-sm text-amber-950">${meta.name}</div>
+                          <div class="text-xs text-stone-600">سعر الوحدة: <span class="font-bold text-amber-900">${unitPrice} ج.م</span></div>
+                        </div>
+                      </div>
+                      <span class="bg-amber-100 text-amber-950 font-black px-2.5 py-1 rounded-xl text-sm">×${count}</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-1.5 mt-3 pt-2 border-t border-amber-900/10">
+                      <button type="button" onclick="sellInventoryItem('${itemId}', 1)" class="py-1.5 rounded-xl btn-primary text-xs font-extrabold">
+                        بيع 1 (+${unitPrice} ج.م)
+                      </button>
+                      <button type="button" onclick="sellInventoryItem('${itemId}', ${count})" class="py-1.5 rounded-xl btn-gold text-xs font-extrabold">
+                        بيع الكل (+${unitPrice * count} ج.م)
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `}
+        `;
+      } else if (activeModalName === 'souq') {
+        iconEl.textContent = '🏪';
+        titleEl.textContent = 'السوق الشعبي ولوحة طلبات أهل القرية';
+        subEl.textContent = 'جهّز طلبات عم رجب وسلمى والمعلم شوقي وحسن لتحصل على مكافآت مجزية وخبرة مضاعفة';
+
+        body.innerHTML = `
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            ${state.orders.map((ord, idx) => {
+              const npc = NPC_PROFILES[ord.npcId] || NPC_PROFILES.shawky;
+              const canFulfill = hasIngredients(ord.items);
+              return `
+                <div class="cozy-card p-4 flex flex-col justify-between ${canFulfill ? 'ring-2 ring-emerald-500 bg-emerald-50/30' : ''}">
+                  <div>
+                    <div class="flex items-center gap-2.5 mb-2">
+                      <img src="${npc.avatarSrc}" alt="${npc.name}" class="w-12 h-12 rounded-2xl object-cover border-2 border-amber-500 shadow" />
+                      <div class="flex-1">
+                        <div class="flex items-center justify-between">
+                          <span class="font-black text-sm text-amber-950">${ord.title}</span>
+                          <span class="text-[11px] font-bold bg-amber-100 text-amber-900 px-2 py-0.5 rounded-full">${npc.name}</span>
+                        </div>
+                        <p class="text-[11px] text-stone-600">${npc.role}</p>
+                      </div>
+                    </div>
+
+                    <div class="bg-amber-50/90 border border-amber-200 rounded-xl p-2.5 space-y-1.5 my-2">
+                      <div class="text-[11px] font-bold text-amber-900">المطلوب تسليمه:</div>
+                      <div class="flex flex-wrap gap-2">
+                        ${ord.items.map(req => {
+                          const meta = ITEM_CATALOG[req.id];
+                          const have = state.inventory[req.id] || 0;
+                          const ok = have >= req.count;
+                          return `
+                            <div class="px-2.5 py-1 rounded-lg border text-xs font-extrabold ${ok ? 'bg-emerald-100 border-emerald-300 text-emerald-900' : 'bg-white border-amber-200 text-stone-700'}">
+                              ${meta.icon} ${meta.name}: ${have}/${req.count} ${ok ? '✓' : ''}
+                            </div>
+                          `;
+                        }).join('')}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center justify-between pt-2 border-t border-amber-900/10 mt-2">
+                    <div class="text-xs font-black text-amber-950">
+                      المكافأة: <span class="text-amber-700">🪙 ${ord.rewardCoins} ج.م</span> • <span class="text-emerald-700">⭐ +${ord.rewardXp} XP</span>
+                    </div>
+                    <div class="flex gap-1.5">
+                      <button type="button" onclick="refreshSingleOrder(${idx})" class="px-2.5 py-1.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-800 text-xs font-bold" title="تبديل الطلب">🔄</button>
+                      <button type="button" ${!canFulfill ? 'disabled' : ''} onclick="fulfillOrder(${idx})" class="px-4 py-1.5 rounded-xl btn-primary text-xs font-extrabold">
+                        تسليم الطلب
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } else if (activeModalName === 'upgrades') {
+        iconEl.textContent = '🛠️';
+        titleEl.textContent = 'ورشة التطوير والتوسعة (المهندس حسن)';
+        subEl.textContent = 'طوّر البنية التحتية للقرية: استصلح الأراضي الـ 20، وسّع الصومعة، وطوّر الساقية والورش';
+
+        const hassan = NPC_PROFILES.hassan;
+        body.innerHTML = `
+          <div class="flex items-center gap-3 bg-emerald-50 border border-emerald-200 p-3 rounded-2xl">
+            <img src="${hassan.avatarSrc}" alt="${hassan.name}" class="w-12 h-12 rounded-2xl object-cover border-2 border-emerald-600" />
+            <div class="text-xs sm:text-sm font-bold text-emerald-950">
+              "${hassan.greeting}"
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            ${GAME_DATA.upgrades.map(u => {
+              const curLvl = state.upgrades[u.id] || 0;
+              const isMax = curLvl >= u.maxLevel;
+              const cost = Math.round(u.baseCost * Math.pow(u.costMult, curLvl));
+              return `
+                <div class="cozy-card p-4 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-center justify-between mb-1">
+                      <span class="text-2xl">${u.icon}</span>
+                      <span class="text-xs font-black bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full">
+                        مستوى التطوير ${curLvl} / ${u.maxLevel}
+                      </span>
+                    </div>
+                    <h4 class="font-extrabold text-sm text-amber-950">${u.name}</h4>
+                    <p class="text-xs text-stone-600 mt-1">${u.desc}</p>
+                  </div>
+                  <div class="mt-3 pt-2.5 border-t border-amber-900/10">
+                    <button type="button" ${isMax ? 'disabled' : ''} onclick="buyUpgrade('${u.id}')" class="w-full py-2 rounded-xl ${isMax ? 'bg-stone-300 text-stone-700' : 'btn-primary'} text-xs font-extrabold">
+                      ${isMax ? '✓ مكتمل لأقصى مستوى' : `🪙 تطوير الآن (${cost} ج.م)`}
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } else if (activeModalName === 'quests') {
+        iconEl.textContent = '📜';
+        titleEl.textContent = 'سجل مهام حكاية بلد (30 مهمة متدرجة)';
+        subEl.textContent = `أنجزت ${state.completedQuests.length} من 30 مهمة في رحلة بناء القرية المصرية`;
+
+        body.innerHTML = `
+          <div class="space-y-2.5">
+            ${QUEST_LIST.map(q => {
+              const done = state.completedQuests.includes(q.id);
+              const cur = Math.min(q.target, getDynamicStat(q.stat));
+              const ready = !done && cur >= q.target;
+              const npc = NPC_PROFILES[q.npc];
+
+              return `
+                <div class="cozy-card p-3 flex flex-wrap items-center justify-between gap-3 ${done ? 'opacity-65 bg-stone-100' : (ready ? 'ring-2 ring-amber-500 bg-amber-50/60' : '')}">
+                  <div class="flex items-center gap-2.5 flex-1 min-w-[220px]">
+                    <img src="${npc.avatarSrc}" alt="${npc.name}" class="w-10 h-10 rounded-xl object-cover border border-amber-400" />
+                    <div>
+                      <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-amber-800">#${q.id}</span>
+                        <h4 class="font-extrabold text-sm text-amber-950">${q.title}</h4>
+                        ${done ? '<span class="text-[10px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">✓ مكتملة</span>' : ''}
+                      </div>
+                      <p class="text-xs text-stone-600">${q.desc}</p>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-3">
+                    <div class="text-left text-xs font-bold">
+                      <div class="text-amber-900">🪙 +${q.rewardCoins} ج.م • ⭐ +${q.rewardXp} XP</div>
+                      <div class="text-stone-600">التقدم: ${cur} / ${q.target}</div>
+                    </div>
+                    ${ready ? `
+                      <button type="button" onclick="claimQuestReward(${q.id})" class="px-3.5 py-1.5 rounded-xl btn-gold text-xs font-black">استلام المكافأة</button>
+                    ` : ''}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        `;
+      } else if (activeModalName === 'mayor') {
+        iconEl.textContent = '👑';
+        titleEl.textContent = 'ديوان العمدة وأوسمة شرف القرية';
+        subEl.textContent = 'إحصائيات قريتك والموسم الزراعي النشط';
+
+        const curSeason = SEASONS[state.seasonIndex || 0] || SEASONS[0];
+        body.innerHTML = `
+          <div class="cozy-card p-4 bg-amber-50/80 border-amber-300 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div class="text-sm font-black text-amber-950">الموسم الحالي: ${curSeason.name}</div>
+              <div class="text-xs text-emerald-800 font-bold mt-0.5">${curSeason.bonusDesc}</div>
+            </div>
+            <button type="button" onclick="cycleSeason()" class="px-3.5 py-1.5 rounded-xl btn-gold text-xs font-extrabold">🔄 تغيير الموسم الزراعي</button>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+            <div class="cozy-card p-3">
+              <div class="text-xl">🌱</div>
+              <div class="text-xs text-stone-600 font-bold">إجمالي الزراعة</div>
+              <div class="text-base font-black text-amber-950">${state.stats.totalPlanted}</div>
+            </div>
+            <div class="cozy-card p-3">
+              <div class="text-xl">🌾</div>
+              <div class="text-xs text-stone-600 font-bold">إجمالي الحصاد</div>
+              <div class="text-base font-black text-amber-950">${state.stats.totalHarvested}</div>
+            </div>
+            <div class="cozy-card p-3">
+              <div class="text-xl">🥖</div>
+              <div class="text-xs text-stone-600 font-bold">منتجات مصنعة</div>
+              <div class="text-base font-black text-amber-950">${state.stats.totalCraftCollected}</div>
+            </div>
+            <div class="cozy-card p-3">
+              <div class="text-xl">🏪</div>
+              <div class="text-xs text-stone-600 font-bold">طلبات مكتملة</div>
+              <div class="text-base font-black text-amber-950">${state.stats.totalOrdersCompleted}</div>
+            </div>
+          </div>
+
+          <div class="flex justify-between items-center bg-red-50 border border-red-200 p-3 rounded-2xl">
+            <span class="text-xs font-bold text-red-900">هل ترغب في بدء حكاية جديدة من الصفر؟</span>
+            <button type="button" onclick="resetGameProgress()" class="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-extrabold">إعادة ضبط اللعبة</button>
+          </div>
+        `;
+      } else if (activeModalName === 'deploy') {
+        iconEl.textContent = '📥';
+        titleEl.textContent = 'ملفات اللعبة وروابط النشر الفوري';
+        subEl.textContent = 'حمّل ملف اللعبة الكامل على جهازك أو انشره أونلاين مجاناً في ثوانٍ';
+
+        body.innerHTML = `
+          <div class="cozy-card p-4 bg-emerald-50 border-2 border-emerald-400 flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 class="font-black text-sm sm:text-base text-emerald-950">1️⃣ تحميل ملف اللعبة الكامل (Single-File HTML5 3D)</h3>
+              <p class="text-xs text-emerald-800 mt-0.5">يحتوي هذا الملف على كل كود القرية والرسوم ثلاثية الأبعاد والبيانات والصوتيات في ملف واحد جاهز للتشغيل أو الرفع.</p>
+            </div>
+            <button type="button" onclick="downloadStandaloneHTML()" class="px-5 py-2.5 rounded-2xl btn-primary text-sm font-black shadow-lg">
+              📥 تحميل ملف اللعبة (index.html)
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="cozy-card p-4 space-y-2">
+              <div class="font-black text-sm text-amber-950">🚀 النشر المجاني بالسحب والإفلات (Netlify Drop)</div>
+              <p class="text-xs text-stone-600">بعد تحميل ملف <code>index.html</code>، ضعه في مجلد واسحبه داخل موقع Netlify Drop لتحصل على رابط مباشر خلال 15 ثانية:</p>
+              <a href="https://app.netlify.com/drop" target="_blank" rel="noopener noreferrer" class="inline-block w-full text-center py-2 rounded-xl btn-gold text-xs font-extrabold">🔗 فتح Netlify Drop</a>
+            </div>
+
+            <div class="cozy-card p-4 space-y-2">
+              <div class="font-black text-sm text-amber-950">🎮 النشر على منصة الألعاب Itch.io</div>
+              <p class="text-xs text-stone-600">ارفع ملف <code>index.html</code> واختر نوع المشروع <b>HTML</b> وفعّل خيار الهواتف لعرض لعبتك للجمهور:</p>
+              <a href="https://itch.io/game/new" target="_blank" rel="noopener noreferrer" class="inline-block w-full text-center py-2 rounded-xl btn-earth text-xs font-extrabold">🔗 رفع اللعبة على Itch.io</a>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function cycleSeason() {
+      state.seasonIndex = ((state.seasonIndex || 0) + 1) % SEASONS.length;
+      const cur = SEASONS[state.seasonIndex];
+      playSound('coin');
+      showToast(`🌾 بدأ ${cur.name}: ${cur.bonusDesc}!`, 'info');
+      updateHUD();
+      renderInspector();
+      refreshActiveModal();
+      saveGame();
+    }
+    window.cycleSeason = cycleSeason;
+
+    function selectSeedAndPlant(seedId) {
+      state.selectedSeed = seedId;
+      populateQuickSeedSelect();
+      const emptyPlot = state.plots.find(p => p.unlocked && !p.cropId);
+      if (emptyPlot) {
+        plantPlot(emptyPlot.id, seedId);
+      } else {
+        showToast(`✓ تم اختيار بذرة ${ITEM_CATALOG[seedId].name}. اضغط على أي أرض فارغة لزراعتها!`, 'info');
+      }
+      refreshActiveModal();
+    }
+    window.selectSeedAndPlant = selectSeedAndPlant;
+
+    function buyAnimal(animalId) {
+      const a = GAME_DATA.animals.find(x => x.id === animalId);
+      if (!a) return;
+      const st = state.animals[animalId];
+      if (st.owned) return;
+      if (state.level < a.unlockLevel) {
+        playSound('error');
+        showToast(`🔒 يتطلب المستوى ${a.unlockLevel}`, 'warn');
+        return;
+      }
+      if (state.coins < a.buyCost) {
+        playSound('error');
+        showToast(`🪙 رصيدك غير كافٍ لشراء ${a.name} (${a.buyCost} ج.م).`, 'error');
+        return;
+      }
+      state.coins -= a.buyCost;
+      st.owned = true;
+      st.feeding = true;
+      st.elapsedSec = 0;
+      playSound('coin');
+      showToast(`🐄 مبروك! انضمت ${a.name} إلى حظيرة القرية وبدأت الإنتاج!`, 'success');
+      sync3DWorld();
+      updateHUD();
+      refreshActiveModal();
+      saveGame();
+    }
+    window.buyAnimal = buyAnimal;
+
+    function feedAnimal(animalId, buyInstantFeed) {
+      const a = GAME_DATA.animals.find(x => x.id === animalId);
+      const st = state.animals[animalId];
+      if (!a || !st || !st.owned || st.feeding) return;
+
+      if (buyInstantFeed) {
+        if (state.coins < a.feedCostCoins) {
+          playSound('error');
+          showToast('🪙 رصيدك غير كافٍ لشراء العلف الفوري!', 'error');
+          return;
+        }
+        state.coins -= a.feedCostCoins;
+      } else {
+        if ((state.inventory[a.feedItem] || 0) > 0) {
+          state.inventory[a.feedItem] -= 1;
+        } else if ((state.inventory['animal_feed'] || 0) > 0) {
+          state.inventory['animal_feed'] -= 1;
+        } else {
+          playSound('error');
+          showToast(`🌾 لا يوجد ${ITEM_CATALOG[a.feedItem].name} في المخزن! ازرعه أو استخدم العلف الفوري.`, 'warn');
+          return;
+        }
+      }
+
+      st.feeding = true;
+      st.elapsedSec = 0;
+      playSound('plant');
+      showToast(`🌿 تم إطعام ${a.name} وبدأ إنتاج ${a.productName}!`, 'success');
+      updateHUD();
+      refreshActiveModal();
+      saveGame();
+    }
+    window.feedAnimal = feedAnimal;
+
+    function collectAnimal(animalId) {
+      const a = GAME_DATA.animals.find(x => x.id === animalId);
+      const st = state.animals[animalId];
+      if (!a || !st || !st.owned || !st.feeding || st.elapsedSec < a.prodTimeSec) return;
+
+      if (!addToInventory(a.productId, 1)) return;
+      st.feeding = false;
+      st.elapsedSec = 0;
+      state.stats.totalAnimalCollected += 1;
+      playSound('harvest');
+      addXpAndCoins(0, a.xp, `+1 ${a.productIcon} ${a.productName}`);
+      showToast(`🥛 جمعت ${a.productName} وأضفته إلى المخزن!`, 'success');
+      updateHUD();
+      refreshActiveModal();
+      saveGame();
+    }
+    window.collectAnimal = collectAnimal;
+
+    function startCraft(facilityId, recipeId) {
+      const fac = GAME_DATA.facilities.find(f => f.id === facilityId);
+      const st = state.facilities[facilityId];
+      if (!fac || !st || st.activeRecipeId) return;
+      const rec = fac.recipes.find(r => r.id === recipeId);
+      if (!rec) return;
+
+      if (!consumeIngredients(rec.inputs)) {
+        playSound('error');
+        showToast('⚠️ المكونات غير كافية في المخزن لتشغيل الوصفة!', 'warn');
+        return;
+      }
+      st.activeRecipeId = rec.id;
+      st.elapsedSec = 0;
+      state.stats.totalCraftStarted += 1;
+      playSound('plant');
+      showToast(`🔥 بدأ تحضير "${rec.name}" في ${fac.name}!`, 'success');
+      updateHUD();
+      refreshActiveModal();
+      saveGame();
+    }
+    window.startCraft = startCraft;
+
+    function collectCraft(facilityId) {
+      const fac = GAME_DATA.facilities.find(f => f.id === facilityId);
+      const st = state.facilities[facilityId];
+      if (!fac || !st || !st.activeRecipeId) return;
+      const rec = fac.recipes.find(r => r.id === st.activeRecipeId);
+      if (!rec || st.elapsedSec < rec.timeSec) return;
+
+      if (!addToInventory(rec.id, 1)) return;
+      st.activeRecipeId = null;
+      st.elapsedSec = 0;
+      state.stats.totalCraftCollected += 1;
+      playSound('harvest');
+      addXpAndCoins(0, rec.xp, `+1 ${rec.icon} ${rec.name}`);
+      showToast(`🥖 استلمت "${rec.name}" وأضفته إلى المخزن!`, 'success');
+      updateHUD();
+      refreshActiveModal();
+      saveGame();
+    }
+    window.collectCraft = collectCraft;
+
+    function sellInventoryItem(itemId, count) {
+      const avail = state.inventory[itemId] || 0;
+      const toSell = Math.min(avail, count);
+      if (toSell <= 0) return;
+      const meta = ITEM_CATALOG[itemId];
+      if (!meta) return;
+
+      state.inventory[itemId] -= toSell;
+      const earned = getItemEffectivePrice(itemId) * toSell;
+      state.stats.totalSoldItems += toSell;
+      playSound('coin');
+      addXpAndCoins(earned, toSell * 2, `+${earned} ج.م 🪙`);
+      showToast(`🪙 بعت ${toSell}× ${meta.name} مقابل ${earned} ج.م!`, 'success');
+      updateHUD();
+      refreshActiveModal();
+      saveGame();
+    }
+    window.sellInventoryItem = sellInventoryItem;
+
+    function fulfillOrder(orderIndex) {
+      const ord = state.orders[orderIndex];
+      if (!ord) return;
+      if (!consumeIngredients(ord.items)) {
+        playSound('error');
+        showToast('⚠️ لا تمتلك جميع عناصر الطلب في المخزن بعد!', 'warn');
+        return;
+      }
+
+      state.stats.totalOrdersCompleted += 1;
+      playSound('levelup');
+      addXpAndCoins(ord.rewardCoins, ord.rewardXp, `+${ord.rewardCoins} ج.م 🏪`);
+      const npc = NPC_PROFILES[ord.npcId] || NPC_PROFILES.shawky;
+      showToast(`🎉 تسلم إيدك! استلم ${npc.name} الطلبية ومنحك ${ord.rewardCoins} ج.م و ${ord.rewardXp} خبرة!`, 'success');
+
+      state.orders[orderIndex] = generateOrder(orderIndex + Math.floor(Math.random() * 10));
+      updateHUD();
+      refreshActiveModal();
+      saveGame();
+    }
+    window.fulfillOrder = fulfillOrder;
+
+    function refreshSingleOrder(orderIndex) {
+      state.orders[orderIndex] = generateOrder(orderIndex + Math.floor(Math.random() * 20));
+      playSound('plant');
+      showToast('🔄 تم تحديث الطلب بطلبية جديدة من أهل القرية.', 'info');
+      refreshActiveModal();
+      saveGame();
+    }
+    window.refreshSingleOrder = refreshSingleOrder;
+
+    function buyUpgrade(upgradeId) {
+      const u = GAME_DATA.upgrades.find(x => x.id === upgradeId);
+      if (!u) return;
+      const curLvl = state.upgrades[upgradeId] || 0;
+      if (curLvl >= u.maxLevel) return;
+      const cost = Math.round(u.baseCost * Math.pow(u.costMult, curLvl));
+      if (state.coins < cost) {
+        playSound('error');
+        showToast(`🪙 رصيدك غير كافٍ لتنفيذ التطوير (${cost} ج.م).`, 'error');
+        return;
+      }
+
+      state.coins -= cost;
+      state.upgrades[upgradeId] = curLvl + 1;
+      state.stats.totalUpgradesBought += 1;
+
+      if (upgradeId === 'expand_plots') {
+        let unlockedNow = 0;
+        for (let i = 0; i < state.plots.length; i++) {
+          if (!state.plots[i].unlocked && unlockedNow < 2) {
+            state.plots[i].unlocked = true;
+            unlockedNow++;
+          }
+        }
+      }
+
+      playSound('levelup');
+      addXpAndCoins(0, 25, `🛠️ تطوير: ${u.name}`);
+      showToast(`🛠️ تم تنفيذ "${u.name}" بنجاح مع المهندس حسن!`, 'success');
+      sync3DWorld();
+      updateHUD();
+      renderInspector();
+      refreshActiveModal();
+      saveGame();
+    }
+    window.buyUpgrade = buyUpgrade;
+
+    function resetGameProgress() {
+      try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+      state = createInitialState();
+      ensureOrders();
+      populateQuickSeedSelect();
+      sync3DWorld();
+      updateHUD();
+      renderInspector();
+      closeModal();
+      showToast('🔄 تمت إعادة ضبط القرية والمزرعة إلى البداية بنجاح!', 'info');
+    }
+    window.resetGameProgress = resetGameProgress;
+    window.plantPlot = plantPlot;
+    window.waterPlot = waterPlot;
+    window.harvestPlot = harvestPlot;
+    window.waterAllPlantedPlots = waterAllPlantedPlots;
+    window.plantAllEmptyPlots = plantAllEmptyPlots;
+    window.harvestAllReadyPlots = harvestAllReadyPlots;
+    window.refreshActiveModal = refreshActiveModal;
+
+    function bindUIControls() {
+      document.getElementById('btn-cam-zoom-in').addEventListener('click', () => {
+        cameraState.zoom = Math.min(1.85, cameraState.zoom + 0.18);
+        state.stats.cameraMoves += 1;
+        updateHUD();
+      });
+      document.getElementById('btn-cam-zoom-out').addEventListener('click', () => {
+        cameraState.zoom = Math.max(0.65, cameraState.zoom - 0.18);
+        state.stats.cameraMoves += 1;
+        updateHUD();
+      });
+      document.getElementById('btn-cam-rotate').addEventListener('click', () => {
+        cameraState.yawIndex = (cameraState.yawIndex + 1) % 4;
+        cameraState.targetYawAngle = Math.PI / 4 + cameraState.yawIndex * (Math.PI / 2);
+        const deg = 45 + cameraState.yawIndex * 90;
+        document.getElementById('camera-angle-badge').textContent = `زاوية ${deg}°`;
+        state.stats.cameraMoves += 1;
+        updateHUD();
+      });
+      document.getElementById('btn-cam-reset').addEventListener('click', () => {
+        cameraState.targetX = 0;
+        cameraState.targetZ = 0;
+        cameraState.zoom = 1.05;
+        cameraState.yawIndex = 0;
+        cameraState.targetYawAngle = Math.PI / 4;
+        document.getElementById('camera-angle-badge').textContent = 'زاوية 45°';
+        state.stats.cameraMoves += 1;
+        updateHUD();
+      });
+
+      document.querySelectorAll('.cam-jump-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const key = btn.dataset.camTarget;
+          const bm = CAMERA_BOOKMARKS[key];
+          if (bm) {
+            cameraState.targetX = bm.x;
+            cameraState.targetZ = bm.z;
+            cameraState.zoom = bm.zoom;
+            state.stats.cameraMoves += 1;
+            showToast(`🎥 انتقال الكاميرا: ${bm.label}`, 'info');
+            updateHUD();
+          }
+        });
+      });
+
+      document.getElementById('btn-hud-storage').addEventListener('click', () => openModal('storage'));
+      document.getElementById('btn-mayor-modal').addEventListener('click', () => openModal('mayor'));
+      document.getElementById('btn-deploy-modal').addEventListener('click', () => openModal('deploy'));
+      document.getElementById('season-badge').addEventListener('click', () => cycleSeason());
+
+      document.getElementById('btn-speed-toggle').addEventListener('click', () => {
+        state.speedMultiplier = state.speedMultiplier === 1 ? 4 : (state.speedMultiplier === 4 ? 10 : 1);
+        document.getElementById('speed-label').textContent = `سرعة ×${state.speedMultiplier}`;
+        showToast(`⚡ سرعة نمو المحاصيل والإنتاج الآن: ×${state.speedMultiplier}`, 'info');
+      });
+
+      document.getElementById('btn-instant-grow').addEventListener('click', () => instantGrowAll());
+
+      document.getElementById('btn-time-toggle').addEventListener('click', () => {
+        state.dayMode = state.dayMode === 'day' ? 'golden' : (state.dayMode === 'golden' ? 'night' : 'day');
+        document.getElementById('time-label').textContent = state.dayMode === 'golden' ? 'ساعة العصاري' : (state.dayMode === 'night' ? 'ليل القرية' : 'شمس الضحى');
+        if (useThreeWebGL && scene && dirLight) {
+          scene.background.setHex(state.dayMode === 'golden' ? 0xfed7aa : (state.dayMode === 'night' ? 0x0f172a : 0xdbeafe));
+          dirLight.color.setHex(state.dayMode === 'golden' ? 0xfdba74 : (state.dayMode === 'night' ? 0x93c5fd : 0xfff7ed));
+        }
+      });
+
+      document.getElementById('btn-audio-toggle').addEventListener('click', e => {
+        state.audioMuted = !state.audioMuted;
+        e.currentTarget.textContent = state.audioMuted ? '🔇' : '🔊';
+      });
+
+      document.querySelectorAll('.farm-tool-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.selectedTool = btn.dataset.tool;
+          document.querySelectorAll('.farm-tool-btn').forEach(b => b.classList.toggle('tool-btn-active', b === btn));
+        });
+      });
+
+      document.getElementById('quick-seed-select').addEventListener('change', e => {
+        state.selectedSeed = e.target.value;
+        renderInspector();
+      });
+
+      document.getElementById('btn-plant-all').addEventListener('click', () => plantAllEmptyPlots());
+      document.getElementById('btn-water-all').addEventListener('click', () => waterAllPlantedPlots());
+      document.getElementById('btn-harvest-all').addEventListener('click', () => harvestAllReadyPlots());
+
+      document.querySelectorAll('.bottom-nav-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.modal;
+          if (activeModalName === target) closeModal();
+          else openModal(target);
+        });
+      });
+
+      document.getElementById('btn-close-modal').addEventListener('click', () => closeModal());
+      document.getElementById('modal-backdrop').addEventListener('click', e => {
+        if (e.target.id === 'modal-backdrop') closeModal();
+      });
+    }
+
+    window.instantGrowAll = instantGrowAll;
+    window.closeModal = closeModal;
+    let hasBooted = false;
+    function bootApp() {
+      if (hasBooted) return;
+      hasBooted = true;
+      loadGame();
+      populateQuickSeedSelect();
+      bindUIControls();
+      init3DEngine();
+      updateHUD();
+      renderInspector();
+      requestAnimationFrame(gameLoop);
+      setInterval(saveGame, 5000);
+    }
+    if (document.readyState === 'loading') {
+      window.addEventListener('DOMContentLoaded', bootApp);
+    } else {
+      bootApp();
+    }
+  </script>
+</body>
+</html>
